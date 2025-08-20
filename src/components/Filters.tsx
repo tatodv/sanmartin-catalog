@@ -1,12 +1,19 @@
 "use client";
 import { ActiveFilters } from "@/lib/filters";
 
-type Facets = { units: string[]; titles: string[]; };
+type Facets = {
+  units: string[];
+  titles: string[];
+  levels: string[];
+};
 
 export default function Filters({
   facets, value, onChange
-}: { facets: Facets; value: ActiveFilters; onChange: (v: ActiveFilters)=>void }) {
-
+}: {
+  facets: Facets;
+  value: ActiveFilters;
+  onChange: (v: ActiveFilters) => void;
+}) {
   const set = (patch: Partial<ActiveFilters>) => onChange({ ...value, ...patch });
   const reset = () => onChange({ q: "" });
 
@@ -15,9 +22,9 @@ export default function Filters({
       <span className="text-sm font-medium">{label}</span>
       <select
         multiple
-        className="min-h-32 rounded-md border border-slate-300 p-2 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+        className="min-h-28 rounded-md border border-slate-300 p-2 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
         value={(value[keyName] as string[] | undefined) ?? []}
-        onChange={(e) => set({ [keyName]: Array.from(e.target.selectedOptions).map(o=>o.value) } as Partial<ActiveFilters>)}
+        onChange={(e) => set({ [keyName]: Array.from(e.target.selectedOptions).map(o=>o.value) } as any)}
       >
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -38,6 +45,7 @@ export default function Filters({
         </label>
         <Multi label="Unidad académica" options={facets.units} keyName="unit" />
         <Multi label="Título" options={facets.titles} keyName="title" />
+        <Multi label="Nivel" options={facets.levels} keyName="level" />
       </div>
 
       <div className="flex items-center gap-2">
