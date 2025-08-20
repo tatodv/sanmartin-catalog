@@ -7,14 +7,14 @@ export type ActiveFilters = {
   level?: string[]; // NUEVO filtro por nivel
 };
 
-const uniqSorted = (arr: (string | undefined)[]) =>
+const uniqSorted = (arr: (string | undefined | null)[]) =>
   Array.from(new Set(arr.filter(Boolean) as string[])).sort();
 
 export function deriveFacets(data: Item[]) {
   return {
-    units: uniqSorted(data.map(d => d.unit?.trim())),
-    titles: uniqSorted(data.map(d => d.title?.trim())),
-    levels: uniqSorted(data.map(d => d.level_or_modality?.trim())), // derivar niveles
+    units: uniqSorted(data.map(d => d.unit)),
+    titles: uniqSorted(data.map(d => d.title)),
+    levels: uniqSorted(data.map(d => d.level_or_modality)), // derivar niveles
   };
 }
 
@@ -25,7 +25,7 @@ export function applyFilters(data: Item[], f: ActiveFilters) {
       d.provider_name, d.program_name, d.title, d.unit, d.address, d.notes
     ].some(v => v?.toLowerCase().includes(q));
 
-    const inList = (val?: string, list?: string[]) =>
+    const inList = (val?: string | null, list?: string[]) =>
       !list?.length || (val && list.includes(val));
 
     return okQ

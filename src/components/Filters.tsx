@@ -24,7 +24,7 @@ export default function Filters({
         multiple
         className="min-h-28 rounded-md border border-slate-300 p-2 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
         value={(value[keyName] as string[] | undefined) ?? []}
-        onChange={(e) => set({ [keyName]: Array.from(e.target.selectedOptions).map(o=>o.value) } as any)}
+        onChange={(e) => set({ [keyName]: Array.from(e.target.selectedOptions).map(o=>o.value) } as Partial<ActiveFilters>)}
       >
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
