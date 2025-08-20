@@ -14,21 +14,21 @@ export default function Page() {
   const results = useMemo(() => applyFilters(dataset, filters), [dataset, filters]);
 
   return (
-    <main className="mx-auto max-w-6xl p-6 space-y-6">
+    <main className="mx-auto max-w-6xl px-4 md:px-6 py-8 space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">Formación en San Martín</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-3xl font-semibold">Formación en San Martín</h1>
+        <p className="text-sm text-slate-600">
           Buscá por institución, programa, título o unidad académica.
         </p>
       </header>
 
       <Filters facets={facets} value={filters} onChange={setFilters} />
 
-      <section>
-        <DataTable data={results} />
-        <p className="text-xs text-muted-foreground mt-2">
-          Mostrando {results.length} de {dataset.length} ofertas.
+      <section className="space-y-2">
+        <p className="text-xs text-slate-600">
+          Mostrando <strong>{results.length}</strong> de {dataset.length} ofertas.
         </p>
+        <DataTable data={results} />
       </section>
     </main>
   );

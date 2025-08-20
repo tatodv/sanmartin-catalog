@@ -6,13 +6,13 @@ export type ActiveFilters = {
   title?: string[]; // Licenciatura, Maestría, etc.
 };
 
-const uniqSorted = (arr: (string | undefined)[]) =>
+const uniqSorted = (arr: (string | undefined | null)[]) =>
   Array.from(new Set(arr.filter(Boolean) as string[])).sort();
 
 export function deriveFacets(data: Item[]) {
   return {
-    units: uniqSorted(data.map(d => d.unit?.trim())),
-    titles: uniqSorted(data.map(d => d.title?.trim())),
+    units: uniqSorted(data.map(d => d.unit)),
+    titles: uniqSorted(data.map(d => d.title)),
   };
 }
 
@@ -22,7 +22,7 @@ export function applyFilters(data: Item[], f: ActiveFilters) {
     const okQ = !q || [
       d.provider_name, d.program_name, d.title, d.address, d.unit, d.notes
     ].some(v => v?.toLowerCase().includes(q));
-    const inList = (val?: string, list?: string[]) =>
+    const inList = (val?: string | null, list?: string[]) =>
       !list?.length || (val && list.includes(val));
     return okQ
       && inList(d.unit, f.unit)
