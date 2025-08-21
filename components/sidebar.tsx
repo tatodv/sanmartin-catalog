@@ -76,7 +76,9 @@ export function Sidebar({ onFiltersChange, isMobileOpen, onMobileClose }: Sideba
         ? { ...prev, [groupId]: [...groupFilters, optionId] }
         : { ...prev, [groupId]: groupFilters.filter((id) => id !== optionId) }
 
-      onFiltersChange?.(newFilters)
+      // No propagar al padre durante el render del hijo para evitar
+      // "Cannot update a component while rendering a different component".
+      // La propagación ocurre explícitamente con los botones "Aplicar"/"Limpiar".
       return newFilters
     })
   }
