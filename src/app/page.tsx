@@ -6,6 +6,7 @@ import { deriveFacets, applyFilters, type ActiveFilters } from "@/lib/filters";
 import { Item } from "@/lib/types";
 import Filters from "@/components/Filters";
 import DataTable from "@/components/DataTable";
+import NearbyControl from "@/components/NearbyControl";
 import dynamic from "next/dynamic";
 
 const MapEmbed = dynamic(() => import("@/components/MapEmbed"), { ssr: false });
@@ -13,7 +14,7 @@ const MapEmbed = dynamic(() => import("@/components/MapEmbed"), { ssr: false });
 export default function Page() {
   const dataset = data as Item[];
   const facets = useMemo(() => deriveFacets(dataset), [dataset]);
-  const [filters, setFilters] = useState<ActiveFilters>({ q: "" });
+  const [filters, setFilters] = useState<ActiveFilters>({ q: "", withGeo: false, near: null, radiusKm: 3 });
   const results = useMemo(() => applyFilters(dataset, filters), [dataset, filters]);
   
   // después de calcular `results`:
@@ -88,6 +89,12 @@ export default function Page() {
       </header>
 
       <Filters facets={facets} value={filters} onChange={setFilters} />
+
+      {/* Control "Cerca de mí" */}
+      <NearbyControl
+        value={{ near: filters.near ?? null, radiusKm: filters.radiusKm ?? 3 }}
+        onChange={(patch) => setFilters(prev => ({ ...prev, ...patch }))}
+      />
 
       <section className="space-y-2">
         <p className="text-xs text-slate-600">

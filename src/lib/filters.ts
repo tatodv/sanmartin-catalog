@@ -1,4 +1,5 @@
 import type { Item } from "./types";
+import { haversineKm } from "./geo";
 
 export type ActiveFilters = {
   q: string;
@@ -6,7 +7,9 @@ export type ActiveFilters = {
   title?: string[];
   level?: string[];
   barrio?: string[];
-  withGeo?: boolean; // NUEVO: solo resultados con lat/lon
+  withGeo?: boolean;
+  near?: { lat: number; lon: number } | null;  // NUEVO: centro
+  radiusKm?: number;                           // NUEVO: radio
 };
 
 const uniqSorted = (arr: (string | null | undefined)[]) =>
@@ -33,11 +36,18 @@ export function applyFilters(data: Item[], f: ActiveFilters) {
 
     const geoOK = !f.withGeo || (typeof d.lat === "number" && typeof d.lon === "number");
 
+    const nearOK = !f.near || !f.radiusKm
+      ? true
+      : (typeof d.lat === "number" && typeof d.lon === "number"
+          ? haversineKm(f.near, { lat: d.lat, lon: d.lon }) <= f.radiusKm
+          : false);
+
     return okQ
       && inList(d.unit, f.unit)
       && inList(d.title, f.title)
       && inList(d.level_or_modality, f.level)
       && inList(d.barrio, f.barrio)
-      && geoOK;
+      && geoOK
+      && nearOK;
   });
 }
