@@ -6,6 +6,9 @@ import { deriveFacets, applyFilters, type ActiveFilters } from "@/lib/filters";
 import { Item } from "@/lib/types";
 import Filters from "@/components/Filters";
 import DataTable from "@/components/DataTable";
+import dynamic from "next/dynamic";
+
+const MapEmbed = dynamic(() => import("@/components/MapEmbed"), { ssr: false });
 
 export default function Page() {
   const dataset = data as Item[];
@@ -43,6 +46,11 @@ export default function Page() {
       barrios: barrios.size
     };
   }, [dataset]);
+
+  // Puntos para el mapa
+  const points = results
+    .filter(r => typeof r.lat === "number" && typeof r.lon === "number")
+    .map(r => ({ lat: r.lat as number, lon: r.lon as number, label: r.provider_name || "" }));
 
   return (
     <main className="mx-auto max-w-6xl px-4 md:px-6 py-8 space-y-6">
@@ -86,6 +94,12 @@ export default function Page() {
           Mostrando <strong>{results.length}</strong> de {dataset.length} ofertas.
         </p>
         <DataTable data={ordered} />
+      </section>
+
+      {/* Mapa */}
+      <section className="space-y-2">
+        <h3 className="text-lg font-medium">Ubicación de Instituciones</h3>
+        <MapEmbed points={points} />
       </section>
     </main>
   );
