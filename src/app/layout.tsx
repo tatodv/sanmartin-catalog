@@ -1,21 +1,17 @@
-import type { Metadata } from "next";
 import "./globals.css";
-
-export const metadata: Metadata = {
-  title: "Formación en San Martín",
-  description: "Catálogo de programas educativos en San Martín",
+import { ThemeProvider } from "next-themes";
+export const metadata = {
+	title: "Formación en San Martín",
+	description: "Catálogo de oferta educativa y cursos en San Martín.",
 };
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="es">
-      <body className="bg-white text-slate-900">
-        {children}
-      </body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+	return (
+		<html lang="es">
+			<body className="bg-white text-slate-900 antialiased">
+				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+					{children}
+				</ThemeProvider>
+			</body>
+		</html>
+	);
 }

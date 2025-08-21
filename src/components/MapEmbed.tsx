@@ -12,7 +12,20 @@ export default function MapEmbed({ points, height = 420 }: Props) {
     if (!ref.current || !points.length) return;
     const map = new maplibregl.Map({
       container: ref.current,
-      style: "https://demotiles.maplibre.org/style.json",
+      style: {
+        version: 8,
+        sources: {
+          osm: {
+            type: "raster",
+            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tileSize: 256,
+            attribution: "© OpenStreetMap contributors",
+          },
+        },
+        layers: [
+          { id: "osm", type: "raster", source: "osm" }
+        ],
+      },
       center: [-58.55, -34.57],
       zoom: 12,
     });

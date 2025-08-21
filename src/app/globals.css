@@ -2,7 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root {
+	--bg: 248 250 252;   /* slate-50 */
+	--card: 255 255 255; /* white */
+	--border: 226 232 240; /* slate-200 */
+	--text: 30 41 59;    /* slate-800 */
+	--accent: 99 102 241; /* indigo-500 */
+}
+html, body { background-color: rgb(var(--bg)); color: rgb(var(--text)); }
 
 /* MapLibre GL styles */
 .maplibregl-map {
