@@ -4,33 +4,40 @@ export type ActiveFilters = {
   q: string;
   unit?: string[];
   title?: string[];
-  level?: string[]; // NUEVO filtro por nivel
+  level?: string[];
+  barrio?: string[];              // NUEVO
+  modality?: string[];            // NUEVO: presencial/virtual
 };
 
-const uniqSorted = (arr: (string | undefined | null)[]) =>
-  Array.from(new Set(arr.filter(Boolean) as string[])).sort();
+const uniqSorted = (arr: (string | null | undefined)[]) =>
+  Array.from(new Set(arr.map(v => (v ?? "").trim()).filter(Boolean) as string[])).sort();
 
 export function deriveFacets(data: Item[]) {
   return {
-    units: uniqSorted(data.map(d => d.unit)),
-    titles: uniqSorted(data.map(d => d.title)),
-    levels: uniqSorted(data.map(d => d.level_or_modality)), // derivar niveles
+    units:     uniqSorted(data.map(d => d.unit)),
+    titles:    uniqSorted(data.map(d => d.title)),
+    levels:    uniqSorted(data.map(d => d.level_or_modality)),
+    barrios:   uniqSorted(data.map(d => d.barrio)),
+    modalities: uniqSorted(data.map(d => d.modality)),   // NUEVO
   };
 }
 
 export function applyFilters(data: Item[], f: ActiveFilters) {
-  const q = f.q?.toLowerCase().trim();
+  const q = (f.q ?? "").toLowerCase().trim();
+
+  const inList = (val?: string | null, list?: string[]) =>
+    !list?.length || (!!val && list.includes(val));
+
   return data.filter(d => {
     const okQ = !q || [
       d.provider_name, d.program_name, d.title, d.unit, d.address, d.notes
     ].some(v => v?.toLowerCase().includes(q));
 
-    const inList = (val?: string | null, list?: string[]) =>
-      !list?.length || (val && list.includes(val));
-
     return okQ
       && inList(d.unit, f.unit)
       && inList(d.title, f.title)
-      && inList(d.level_or_modality, f.level); // aplicar nivel
+      && inList(d.level_or_modality, f.level)
+      && inList(d.barrio, f.barrio)
+      && inList(d.modality, f.modality);               // NUEVO
   });
 }
