@@ -32,67 +32,33 @@ export function groupBy<T>(arr: T[], key: (x: T) => string) {
   return m;
 }
 
-// Construye secciones para la vista agrupada (inicial)
+// Construye secciones para la vista agrupada (instituciones + extras)
 export function buildHomeGroups(data: Item[]) {
-  // 1) Secundaria por institución (usar nivel canónico)
-  const sec = data.filter(d => d.level_norm === "Secundaria");
-  const secByInst = groupBy(sec, d => d.provider_name || "Sin institución");
-  const secundariaPorInstitucion = Array.from(secByInst.entries()).map(([inst, items]) => ({
-    id: `sec__${inst}`,
-    title: inst,
-    subtitle: `${items.length} oferta(s)`,
-    items,
-  }));
+  // Agrupar todo el dataset por institución
+  const byProvider = groupBy(data, d => d.provider_name || "Sin institución");
+  const instituciones = Array.from(byProvider.entries())
+    .map(([inst, items]) => ({
+      id: `inst_${inst}`,
+      title: inst,
+      count: items.length,
+      type: "flat" as const,
+      items,
+    }))
+    .sort((a, b) => a.title.localeCompare(b.title));
 
-  // 2) Cursos tecnológicos (Agenda Tec.) → family normalizada
-  const tec = data.filter(d => d.family === "Informática");
-  
-  // 3) Técnica (grupo plano) usando nivel canónico
-  const tecnicas = data.filter(d => d.level_norm === "Técnica");
-  
-  // 4) Superior (universidades, terciarios)
-  const superior = data.filter(d => d.level_norm === "Superior");
-  
-  // 5) Cursos generales
-  const cursos = data.filter(d => d.level_norm === "Curso");
-
-  return [
-    {
-      id: "G1",
-      title: `Secundaria — por institución`,
-      count: new Set(sec.map(s => s.provider_name)).size,
-      type: "nested" as const,
-      groups: secundariaPorInstitucion,
-    },
-    {
-      id: "G2",
-      title: `Cursos tecnológicos (Agenda Tec.)`,
+  // Categorías adicionales: Cursos tecnológicos (Agenda Tec.)
+  const tec = data.filter(isTechCourse);
+  if (tec.length) {
+    instituciones.push({
+      id: "tec",
+      title: "Cursos tecnológicos (Agenda Tec.)",
       count: tec.length,
       type: "flat" as const,
       items: tec,
-    },
-    {
-      id: "G3",
-      title: `Técnica`,
-      count: tecnicas.length,
-      type: "flat" as const,
-      items: tecnicas,
-    },
-    {
-      id: "G4",
-      title: `Superior`,
-      count: superior.length,
-      type: "flat" as const,
-      items: superior,
-    },
-    {
-      id: "G5",
-      title: `Cursos y Capacitaciones`,
-      count: cursos.length,
-      type: "flat" as const,
-      items: cursos,
-    },
-  ];
+    });
+  }
+
+  return instituciones;
 }
 
 
