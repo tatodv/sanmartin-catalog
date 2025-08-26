@@ -11,7 +11,14 @@ import { debounce } from "@/lib/debounce";
 // Mantener tus componentes visuales existentes
 import { TopBar } from "@/components/top-bar";
 import { Sidebar } from "@/components/sidebar";
-import { ResultsList } from "@/components/results-list";
+import ResultsList from "@/components/results-list";
+
+// id estable y único por item (hash + índice como defensa)
+function makeKey(base: string, i: number) {
+  let h = 0;
+  for (let c = 0; c < base.length; c++) h = (h * 31 + base.charCodeAt(c)) >>> 0;
+  return `${h.toString(36)}-${i}`;
+}
 
 const mapsUrl = (addr?: string) =>
   addr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr + ", San Martín, Buenos Aires")}` : "";
@@ -67,24 +74,33 @@ function HomePageContent() {
   } as any;
 
   // 6) adaptar datos a la tarjeta sin cambiar estilos
-  const adapted = React.useMemo(() => results.map(it => ({
-    id: `${it.provider_name}|${it.program_name}|${it.unit}`,
-    heading: it.program_name,
-    badgeRight: it.title,
-    chips: [it.provider_name, it.unit].filter(Boolean),
-    barrio: it.barrio,
-    address: it.address,
-    notes: it.notes || "",
-    level: it.level_norm || it.level,
-    family: it.family,
-    unit: it.unit,
-    provider: it.provider_name,
-    phone: it.phone || "",
-    email: it.email || "",
-    modality: it.modality || "",
-    maps: mapsUrl(it.address),
-    raw: it,
-  })), [results]);
+  const adapted = React.useMemo(() => results.map((it, i) => {
+    const base = `${it.provider_name}|${it.program_name}|${it.unit}|${it.address}|${it.title}`;
+    return {
+      id: makeKey(base, i),                // id única y estable
+      heading: it.program_name,
+      badgeRight: it.title,
+      chips: [it.provider_name, it.unit].filter(Boolean),
+      level: it.level_norm || it.level,
+      area: it.family || "",
+      barrio: it.barrio || "Barrio no especificado",
+      address: it.address || "",
+      notes: it.notes || "",
+      phone: (it as any).phone || "",
+      email: (it as any).email || "",
+      modality: (it as any).modality || "",
+      maps: mapsUrl(it.address),
+      raw: it,
+    };
+  }), [results]);
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[SANITY] headerVsList", {
+      headerCount: results.length,
+      itemsCount: adapted.length,
+      first3: adapted.slice(0,3).map(x=>({ heading: x.heading, badge: x.badgeRight }))
+    })
+  }
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -108,7 +124,7 @@ function HomePageContent() {
         )}
 
         <div className="flex-1 overflow-y-auto">
-          <ResultsList items={adapted} total={catalog.length} />
+          <ResultsList items={adapted} />
         </div>
       </div>
     </div>

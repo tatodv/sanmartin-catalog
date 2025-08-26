@@ -22,7 +22,6 @@ export function facets(data: CatalogItem[]) {
 
 const haystack = (r: CatalogItem) => {
   const composite = `${r.provider_name} ${r.program_name} ${r.title} ${r.unit} ${r.address} ${r.barrio}`;
-  // Siempre incluir _search + campos clave para evitar falsos negativos si _search está incompleto
   return `${(r._search || "")} ${deburr(composite)}`.toLowerCase();
 };
 
@@ -41,30 +40,56 @@ const score = (r: CatalogItem, q?: string) => {
   const h = haystack(r);
   let s = 0;
   for (const t of toks) {
-    if (p.startsWith(t)) s += 4;     // match fuerte al inicio
-    if (p.includes(t)) s += 2;       // match en programa
-    if (prov.includes(t)) s += 1.5;  // match en institución
-    if (h.includes(t)) s += 1;       // fallback
+    if (p.startsWith(t)) s += 4;
+    if (p.includes(t)) s += 2;
+    if (prov.includes(t)) s += 1.5;
+    if (h.includes(t)) s += 1;
   }
   return s;
 };
 
+// Orden por defecto (sin query): prioriza niveles altos, con notas, y penaliza títulos genéricos
+const GENERICOS = /^(juventudes|punto digital|personas mayores|discapacidad)$/i;
+const levelW = (lvl?: string) =>
+  lvl === "Superior" ? 40 :
+  lvl === "Técnica"  ? 30 :
+  lvl === "Secundaria" ? 20 :
+  lvl === "Curso"    ? 10 : 0;
+const defaultRank = (r: CatalogItem) =>
+  levelW(r.level_norm) + (r.notes ? 5 : 0) + (GENERICOS.test((r.program_name || "").trim()) ? -100 : 0);
+
 export function applyFilters(data: CatalogItem[], f: FilterState) {
-  return data
-    .filter(r => {
-      if (!matchesQuery(r, f.q)) return false;
-      if (f.level_norm && (r.level_norm || "") !== f.level_norm) return false;
-      if (f.family && (r.family || "") !== f.family) return false;
-      if (f.barrio && (r.barrio || "") !== f.barrio) return false;
-      if (f.provider_name && (r.provider_name || "") !== f.provider_name) return false;
-      if (f.unit && (r.unit || "") !== f.unit) return false;
-      if (f.title && (r.title || "") !== f.title) return false;
-      return true;
-    })
-    .map(r => ({ r, s: score(r, f.q) }))
-    .sort((a,b) => (b.s - a.s)
-      || a.r.provider_name.localeCompare(b.r.provider_name,"es")
-      || a.r.program_name.localeCompare(b.r.program_name,"es"))
+  const filtered = data.filter(r => {
+    if (!matchesQuery(r, f.q)) return false;
+    if (f.level_norm && (r.level_norm || "") !== f.level_norm) return false;
+    if (f.family && (r.family || "") !== f.family) return false;
+    if (f.barrio && (r.barrio || "") !== f.barrio) return false;
+    if (f.provider_name && (r.provider_name || "") !== f.provider_name) return false;
+    if (f.unit && (r.unit || "") !== f.unit) return false;
+    if (f.title && (r.title || "") !== f.title) return false;
+    return true;
+  });
+
+  const hasQ = !!(f.q && f.q.trim());
+  if (hasQ) {
+    return filtered
+      .map(r => ({ r, s: score(r, f.q) }))
+      .sort((a, b) =>
+        (b.s - a.s) ||
+        a.r.provider_name.localeCompare(b.r.provider_name, "es") ||
+        a.r.program_name.localeCompare(b.r.program_name, "es")
+      )
+      .map(x => x.r);
+  }
+
+  // Orden por defecto mejorado cuando no hay query
+  return filtered
+    .map(r => ({ r, w: defaultRank(r) }))
+    .sort((a, b) =>
+      (b.w - a.w) ||
+      a.r.provider_name.localeCompare(b.r.provider_name, "es") ||
+      a.r.program_name.localeCompare(b.r.program_name, "es")
+    )
     .map(x => x.r);
 }
 
