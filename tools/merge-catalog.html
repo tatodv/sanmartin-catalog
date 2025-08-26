@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>SM Formando · Unificar Catálogo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --ink:#e5e7eb; --muted:#94a3b8; --card:#111827; --accent:#22d3ee; }
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    .wrap{max-width:960px;margin:0 auto;padding:24px}
+    h1{font-size:clamp(20px,3.8vw,34px);margin:8px 0 6px}
+    p{color:var(--muted);margin:0 0 16px}
+    .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:16px;margin:16px 0}
+    .drop{display:flex;align-items:center;justify-content:center;gap:12px;min-height:120px;border:2px dashed #374151;border-radius:14px;padding:18px;text-align:center}
+    .drop.drag{border-color:var(--accent);background:#0b1324}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+    @media (min-width:720px){ .row{grid-template-columns:1fr 1fr} }
+    textarea, input[type="text"]{width:100%;min-height:120px;background:#0b1020;color:var(--ink);border:1px solid #253048;border-radius:12px;padding:12px}
+    button{background:linear-gradient(180deg,#1e293b,#0f172a);border:1px solid #273449;color:#e2e8f0;border-radius:12px;padding:12px 14px;cursor:pointer}
+    button.primary{border-color:#155e75;box-shadow:inset 0 0 0 1px #0ea5b7}
+    .tag{font-size:12px;color:#a5b4fc;background:#11123a;border:1px solid #23245d;border-radius:100px;padding:4px 10px;margin-right:6px;display:inline-block}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0b1020;border:1px solid #273449;border-radius:8px;padding:2px 6px}
+    .small{font-size:12px;color:#9ca3af}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  </style>
+  <!-- SheetJS para leer .xlsx en el navegador -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SM Formando · Unificar Catálogo</h1>
+    <p>Arrastrá tus planillas .xlsx, pegá el <span class="mono">catalog.json</span> si querés, y exportá todo normalizado.</p>
+
+    <div class="card">
+      <div id="drop" class="drop">
+        <div>
+          <div style="font-size:18px;margin-bottom:6px">Soltá tus <b>.xlsx</b> acá</div>
+          <div class="small">También podés hacer click para seleccionarlas</div>
+          <div style="margin-top:8px">
+            <span class="tag">SECUNDARIA.xlsx</span>
+            <span class="tag">TECNICA.xlsx</span>
+            <span class="tag">SUPERIOR.xlsx</span>
+            <span class="tag">UNSAM.xlsx</span>
+            <span class="tag">POTENCIATE.xlsx</span>
+            <span class="tag">AGENDA.xlsx</span>
+          </div>
+          <input id="fileInput" type="file" accept=".xlsx" multiple style="display:none" />
+        </div>
+      </div>
+      <div class="small">Tip: si el navegador no deja arrastrar, tocá la zona y elegí archivos.</div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div style="margin-bottom:8px"><b>Opcional:</b> pegá tu <span class="mono">catalog.json</span> actual</div>
+        <textarea id="catalogTextarea" placeholder='[{"provider_name":"...","program_name":"..."}]'></textarea>
+      </div>
+      <div class="card">
+        <div style="margin-bottom:8px"><b>Overrides (manuales):</b> (ya te dejo uno de ejemplo)</div>
+        <textarea id="overridesTextarea" class="mono" spellcheck="false"></textarea>
+        <div class="small">Formato: <span class="mono">{"byKey":{"PROV|PROG|UNIT":{"level_norm":"Superior","family":"..."}}}</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="margin-bottom:8px"><b>Taxonomía</b> (para normalizar <i>level</i> y <i>family</i>)</div>
+      <textarea id="taxonomyTextarea" class="mono" spellcheck="false"></textarea>
+      <div class="small">Podés ajustarla si cambiás nombres/criterios.</div>
+    </div>
+
+    <div class="row">
+      <button id="exportRaw">Exportar JSON (catalog-master.json)</button>
+      <button id="exportNorm" class="primary">Exportar Normalizado (catalog-normalized.json)</button>
+    </div>
+
+    <div id="log" class="small" style="margin-top:14px"></div>
+  </div>
+
+<script>
+const $ = sel => document.querySelector(sel);
+const log = (msg) => { const el = $("#log"); el.innerHTML += (el.innerHTML ? "<br>" : "") + msg; }
+const deburr = (s="") => s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+const toKey = (s="") => deburr(String(s).trim().toLowerCase());
+
+/*** Defaults: taxonomy + overrides (los que me pasaste) ***/
+const DEFAULT_TAXONOMY = {
+  "level": {
+    "curso":"Curso","cursos":"Curso","capacitacion":"Curso","capacitación":"Curso","taller":"Curso","seminario":"Curso","workshop":"Curso",
+    "secundaria":"Secundaria","bachiller":"Secundaria",
+    "tecnica":"Técnica","técnica":"Técnica","escuela tecnica":"Técnica","escuela técnica":"Técnica","tecnico":"Técnica","técnico":"Técnica",
+    "superior":"Superior","terciario":"Superior","universitario":"Superior","universitaria":"Superior","licenciatura":"Superior","maestria":"Superior","maestría":"Superior","doctorado":"Superior","profesorado":"Superior","tecnicatura":"Superior","diplomatura":"Superior","posgrado":"Superior","postgrado":"Superior"
+  },
+  "family": {
+    "informatica":"Informática","informática":"Informática","programacion":"Informática","programación":"Informática","software":"Informática","datos":"Informática","data":"Informática","sistemas":"Informática","redes":"Informática",
+    "electronica":"Electrónica","electrónica":"Electrónica",
+    "electromec":"Electromecánica",
+    "metalmec":"Metalmecánica","metalmecanica":"Metalmecánica","metalmecánica":"Metalmecánica",
+    "textil":"Textil e Indumentaria","indumentaria":"Textil e Indumentaria",
+    "gastronom":"Gastronomía",
+    "administracion":"Administración y Comercialización","administración":"Administración y Comercialización",
+    "comercializacion":"Administración y Comercialización","comercialización":"Administración y Comercialización"
+  }
+};
+// Ejemplo de override que mostrás
+const DEFAULT_OVERRIDES = {
+  "byKey": {
+    "UNSAM|Licenciatura en Economía|Escuela de Economía y Negocios": {
+      "level_norm": "Superior",
+      "family": "Administración y Comercialización"
+    }
+  }
+};
+
+$("#taxonomyTextarea").value = JSON.stringify(DEFAULT_TAXONOMY, null, 2);
+$("#overridesTextarea").value = JSON.stringify(DEFAULT_OVERRIDES, null, 2);
+
+/*** Arrastrar .xlsx ***/
+const drop = $("#drop");
+const fileInput = $("#fileInput");
+let xlsxFiles = [];
+
+const handleFiles = (files) => {
+  xlsxFiles = Array.from(files).filter(f => /.xlsx$/i.test(f.name));
+  log(`Archivos listos: ${xlsxFiles.map(f=>f.name).join(", ")}`);
+};
+drop.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", e => handleFiles(e.target.files));
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("drag"); });
+drop.addEventListener("dragleave", e => { drop.classList.remove("drag"); });
+drop.addEventListener("drop", e => {
+  e.preventDefault(); drop.classList.remove("drag");
+  handleFiles(e.dataTransfer.files);
+});
+
+/*** Lectura de XLSX a objetos homogéneos ***/
+function normalizeColumns(cols){
+  const map = {};
+  cols.forEach(c=>{
+    const raw = String(c).trim();
+    const k = toKey(raw).replace(/\s+/g,'_');
+    map[raw] = k; // original -> normalized key
+  });
+  return map;
+}
+
+function pickField(colsNorm, rowNorm, candidates){
+  // candidates: array of regex or strings to match on normalized column names
+  for (const cand of candidates){
+    const re = cand instanceof RegExp ? cand : new RegExp(`\\b${cand}\\b`,'i');
+    const found = Object.values(colsNorm).find(k => re.test(k));
+    if (found && rowNorm.hasOwnProperty(found)) return rowNorm[found];
+  }
+  return "";
+}
+
+function rowToCatalog(colsMap, row){
+  // Convertimos una fila cualquiera a nuestro esquema común
+  const rowNorm = {};
+  for (const [orig, norm] of Object.entries(colsMap)){
+    rowNorm[norm] = row[orig];
+  }
+  const provider_name = pickField(colsMap, rowNorm, [/instituci(ó|o)n|provider|organismo|universidad|colegio|centro|isft|unsam/]);
+  const program_name  = pickField(colsMap, rowNorm, [/programa|carrera|curso|tecnicatura|licenciatura|maestr(í|i)a|doctorado|profesorado|oferta|nombre/]);
+  const title         = pickField(colsMap, rowNorm, [/t(í|i)tulo|titulaci(ó|o)n|tipo|trayecto|menci(ó|o)n|nivel/]);
+  const unit          = pickField(colsMap, rowNorm, [/unidad|escuela|facultad|centro|sede|departamento|area|área/]);
+  const address       = pickField(colsMap, rowNorm, [/direcci(ó|o)n|domicilio|ubicaci(ó|o)n|calle/]);
+  const barrio        = pickField(colsMap, rowNorm, [/barrio|localidad|zona/]);
+  const level         = pickField(colsMap, rowNorm, [/nivel|trayecto|tipo|rango/]);
+  const family        = pickField(colsMap, rowNorm, [/familia|orientaci(ó|o)n|sector|eje/]);
+  const notes         = pickField(colsMap, rowNorm, [/nota|observaci(ó|o)nes|detalle|comentario/]);
+
+  return {
+    provider_name: provider_name || "",
+    program_name : program_name  || "",
+    title        : title         || "",
+    unit         : unit          || "",
+    address      : address       || "",
+    barrio       : barrio        || "",
+    level        : level         || "",
+    family       : family        || "",
+    notes        : notes         || ""
+  };
+}
+
+async function readAllXLSX(files){
+  const all = [];
+  for (const f of files){
+    const buf = await f.arrayBuffer();
+    const wb = XLSX.read(buf, {type:"array"});
+    for (const sheetName of wb.SheetNames){
+      const ws = wb.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(ws, {defval:""});
+      if (!json.length) continue;
+      const colsMap = normalizeColumns(Object.keys(json[0]));
+      json.forEach(row=>{
+        const it = rowToCatalog(colsMap, row);
+        // filtro: si no tiene mínimamente provider o program, salteamos basura
+        const ok = (it.provider_name || it.program_name);
+        if (ok){
+          it._source_file = f.name;
+          it._source_sheet = sheetName;
+          all.push(it);
+        }
+      });
+    }
+  }
+  return all;
+}
+
+/*** Normalización con taxonomy + overrides ***/
+function applyTaxonomy(item, taxonomy){
+  const lvlMap = taxonomy.level || {};
+  const famMap = taxonomy.family || {};
+
+  const haystack = [item.level,item.title,item.program_name,item.notes].join(" ").toLowerCase();
+  let level_norm = "";
+  for (const [k,v] of Object.entries(lvlMap)){
+    if (haystack.includes(k.toLowerCase())) { level_norm = v; break; }
+  }
+
+  let family = item.family || "";
+  if (!family){
+    for (const [k,v] of Object.entries(famMap)){
+      if (haystack.includes(k.toLowerCase())) { family = v; break; }
+    }
+  }
+
+  return { level_norm, family };
+}
+
+function makeKey(item){
+  return [item.provider_name, item.program_name, item.unit].map(s=>s||"").join("|");
+}
+
+function normalizeAll(rows, taxonomy, overrides){
+  const out = [];
+  const ovByKey = (overrides && overrides.byKey) || {};
+  rows.forEach(it=>{
+    const {level_norm, family} = applyTaxonomy(it, taxonomy);
+    const base = {
+      ...it,
+      level_norm: level_norm || "",
+      family    : family     || it.family || "",
+    };
+    const k = makeKey(base);
+    if (ovByKey[k]){
+      Object.assign(base, ovByKey[k]);
+    }
+    // barrio fallback
+    if (!base.barrio) base.barrio = "Barrio no especificado";
+    // _search
+    const search = [
+      base.provider_name, base.program_name, base.title, base.unit, base.address, base.barrio
+    ].filter(Boolean).join(" ").toLowerCase();
+    base._search = deburr(search);
+    out.push(base);
+  });
+  return out;
+}
+
+/*** Export helpers ***/
+function downloadJSON(filename, data){
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+async function getInputs(){
+  const taxonomy = JSON.parse($("#taxonomyTextarea").value || "{}");
+  const overrides = JSON.parse($("#overridesTextarea").value || "{}");
+  const pastedCatalog = $("#catalogTextarea").value.trim() ? JSON.parse($("#catalogTextarea").value) : [];
+  const xlsxRows = await readAllXLSX(xlsxFiles);
+  const merged = [...pastedCatalog, ...xlsxRows];
+  return {taxonomy, overrides, merged};
+}
+
+$("#exportRaw").addEventListener("click", async ()=>{
+  try {
+    const {merged} = await getInputs();
+    log(`Total filas (raw): ${merged.length}`);
+    downloadJSON("catalog-master.json", merged);
+  } catch(e){ alert("Error exportando RAW: "+e.message); console.error(e); }
+});
+
+$("#exportNorm").addEventListener("click", async ()=>{
+  try {
+    const {taxonomy, overrides, merged} = await getInputs();
+    const normalized = normalizeAll(merged, taxonomy, overrides);
+    log(`Total filas (normalizado): ${normalized.length}`);
+    downloadJSON("catalog-normalized.json", normalized);
+  } catch(e){ alert("Error exportando NORMALIZADO: "+e.message); console.error(e); }
+});
+</script>
+</body>
+</html>

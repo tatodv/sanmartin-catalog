@@ -6,94 +6,93 @@ import { Button } from "@/components/ui/button"
 import { FilterGroup } from "@/components/filter-group"
 import { cn } from "@/lib/utils"
 
-const filterGroups = [
-  {
-    id: "nivel",
-    title: "Nivel",
-    options: [
-      { id: "curso", label: "Curso", count: 45 },
-      { id: "secundaria", label: "Secundaria", count: 32 },
-      { id: "superior", label: "Superior", count: 298 },
-      { id: "tecnica", label: "Técnica", count: 56 },
-    ],
-  },
-  {
-    id: "barrio",
-    title: "Barrio",
-    options: [{ id: "a-validar-unsam", label: "A validar (UNSAM)", count: 431 }],
-  },
-  {
-    id: "unidad-academica",
-    title: "Unidad académica",
-    options: [
-      { id: "idaes", label: "Escuela Interdisciplinaria de Altos Estudios Sociales - IDAES", count: 45 },
-      { id: "arte-patrimonio", label: "Escuela de Arte y Patrimonio", count: 28 },
-      { id: "bio-nanotecnologias", label: "Escuela de Bio y Nanotecnologías", count: 35 },
-      { id: "ciencia-tecnologia", label: "Escuela de Ciencia y Tecnología", count: 52 },
-      { id: "economia-negocios", label: "Escuela de Economía y Negocios", count: 38 },
-      { id: "humanidades", label: "Escuela de Humanidades", count: 41 },
-      { id: "habitat-sostenibilidad", label: "Escuela de Hábitat y Sostenibilidad", count: 29 },
-      { id: "politica-gobierno", label: "Escuela de Política y Gobierno", count: 33 },
-      { id: "dan-beninson", label: "Instituto Dan Beninson", count: 18 },
-      { id: "rehabilitacion-movimiento", label: "Instituto de Rehabilitación y Movimiento", count: 22 },
-      { id: "sabato", label: "Instituto de Tecnología Prof. Jorge Sabato", count: 47 },
-      { id: "oespu", label: "Observatorio de Educación Superior y Políticas Universitarias (OESPU)", count: 43 },
-    ],
-  },
-  {
-    id: "titulo",
-    title: "Título",
-    options: [
-      { id: "arquitectura", label: "Arquitectura", count: 12 },
-      { id: "contador", label: "Contador", count: 8 },
-      { id: "doctorado", label: "Doctorado", count: 67 },
-      { id: "especializacion", label: "Especialización", count: 89 },
-      { id: "ingenieria", label: "Ingeniería", count: 45 },
-      { id: "licenciatura", label: "Licenciatura", count: 134 },
-      { id: "licenciatura-tecnicatura", label: "Licenciatura, Tecnicatura", count: 23 },
-      { id: "maestria", label: "Maestría", count: 78 },
-      { id: "martillero", label: "Martillero", count: 3 },
-      { id: "profesorado", label: "Profesorado", count: 56 },
-      { id: "tecnicatura", label: "Tecnicatura", count: 67 },
-    ],
-  },
-]
-
 interface SidebarProps {
-  onFiltersChange?: (filters: Record<string, string[]>) => void
+  searchValue?: string
+  onSearchChange?: (v: string) => void
+
+  levels: string[];    levelCounts: Record<string, number>;    onLevelChange: (v: string)=>void
+  families: string[];  familyCounts: Record<string, number>;   onFamilyChange: (v: string)=>void
+  barrios: string[];   barrioCounts: Record<string, number>;   onBarrioChange: (v: string)=>void
+  providers: string[]; providerCounts: Record<string, number>; onProviderChange: (v: string)=>void
+  units: string[];     unitCounts: Record<string, number>;     onUnitChange: (v: string)=>void
+  titles: string[];    titleCounts: Record<string, number>;    onTitleChange: (v: string)=>void
+
+  onClear?: () => void
   isMobileOpen?: boolean
   onMobileClose?: () => void
 }
 
-export function Sidebar({ onFiltersChange, isMobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({
+  searchValue = "",
+  onSearchChange,
+  levels, levelCounts, onLevelChange,
+  families, familyCounts, onFamilyChange,
+  barrios, barrioCounts, onBarrioChange,
+  providers, providerCounts, onProviderChange,
+  units, unitCounts, onUnitChange,
+  titles, titleCounts, onTitleChange,
+  onClear,
+  isMobileOpen,
+  onMobileClose,
+}: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({})
 
   const handleFilterChange = (groupId: string, optionId: string, checked: boolean) => {
-    setSelectedFilters((prev) => {
-      const groupFilters = prev[groupId] || []
-      const newFilters = checked
-        ? { ...prev, [groupId]: [...groupFilters, optionId] }
-        : { ...prev, [groupId]: groupFilters.filter((id) => id !== optionId) }
+    // Selección simple por grupo (si UI requiere multi, adaptar aquí)
+    const newVal = checked ? [optionId] : []
+    setSelectedFilters(prev => ({ ...prev, [groupId]: newVal }))
 
-      // No propagar al padre durante el render del hijo para evitar
-      // "Cannot update a component while rendering a different component".
-      // La propagación ocurre explícitamente con los botones "Aplicar"/"Limpiar".
-      return newFilters
-    })
+    switch (groupId) {
+      case "nivel": onLevelChange(checked ? optionId : ""); break
+      case "familia": onFamilyChange(checked ? optionId : ""); break
+      case "barrio": onBarrioChange(checked ? optionId : ""); break
+      case "unidad-academica": onUnitChange(checked ? optionId : ""); break
+      case "titulo": onTitleChange(checked ? optionId : ""); break
+      case "institucion": onProviderChange(checked ? optionId : ""); break
+    }
   }
 
   const clearFilters = () => {
     setSelectedFilters({})
-    onFiltersChange?.({})
-  }
-
-  const applyFilters = () => {
-    console.log("Aplicando filtros:", selectedFilters)
-    onFiltersChange?.(selectedFilters)
+    onLevelChange(""); onFamilyChange(""); onBarrioChange(""); onUnitChange(""); onTitleChange(""); onProviderChange("")
+    onClear?.()
   }
 
   const hasActiveFilters = Object.values(selectedFilters).some((filters) => filters.length > 0)
+
+  const groups = [
+    {
+      id: "nivel",
+      title: "Nivel",
+      options: levels.map(l => ({ id: l, label: l, count: levelCounts[l] || 0 })).filter(o => o.count > 0)
+    },
+    {
+      id: "familia",
+      title: "Familia",
+      options: families.map(v => ({ id: v, label: v, count: familyCounts[v] || 0 })).filter(o => o.count > 0)
+    },
+    {
+      id: "barrio",
+      title: "Barrio",
+      options: barrios.map(v => ({ id: v, label: v, count: barrioCounts[v] || 0 })).filter(o => o.count > 0)
+    },
+    {
+      id: "institucion",
+      title: "Institución",
+      options: providers.map(v => ({ id: v, label: v, count: providerCounts[v] || 0 })).filter(o => o.count > 0)
+    },
+    {
+      id: "unidad-academica",
+      title: "Unidad académica",
+      options: units.map(v => ({ id: v, label: v, count: unitCounts[v] || 0 })).filter(o => o.count > 0)
+    },
+    {
+      id: "titulo",
+      title: "Título",
+      options: titles.map(v => ({ id: v, label: v, count: titleCounts[v] || 0 })).filter(o => o.count > 0)
+    },
+  ]
 
   return (
     <>
@@ -145,7 +144,7 @@ export function Sidebar({ onFiltersChange, isMobileOpen, onMobileClose }: Sideba
 
           <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4 overscroll-contain">
             <div className="space-y-6">
-              {filterGroups.map((group) => (
+              {groups.map((group) => (
                 <FilterGroup
                   key={group.id}
                   title={group.title}
@@ -171,7 +170,7 @@ export function Sidebar({ onFiltersChange, isMobileOpen, onMobileClose }: Sideba
               </Button>
               <Button
                 size="sm"
-                onClick={applyFilters}
+                onClick={() => {/* en esta versión los filtros aplican en vivo */}}
                 disabled={!hasActiveFilters}
                 className="flex-1 h-12 lg:h-10 rounded-xl bg-primary hover:bg-primary/90 focus-visible:ring-primary shadow-lg transition-all disabled:opacity-50 text-base lg:text-sm"
               >

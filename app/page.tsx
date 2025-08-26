@@ -1,54 +1,125 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { TopBar } from "@/components/top-bar"
-import { Sidebar } from "@/components/sidebar"
-import { ResultsList } from "@/components/results-list"
-import GroupedHome from "@/components/GroupedHome"
-import catalog from "./(data)/catalog.json"
-import type { Item } from "@/lib/types"
+import React, { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
-export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({})
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  const dataset = (catalog as unknown) as Item[]
-  
-  // Estado inicial sin filtros de distancia activos
-  const [geoFilters, setGeoFilters] = useState({
-    withGeo: false,
-    near: null,
-    radiusKm: undefined
-  })
-  
-  const isPristine =
-    searchQuery.trim() === "" &&
-    Object.values(activeFilters).every((arr) => (arr?.length ?? 0) === 0) &&
-    !geoFilters.withGeo &&
-    !geoFilters.near
+import { catalog, facets, applyFilters, facetCounts } from "@/lib/catalog";
+import type { FilterState } from "@/lib/urlState";
+import { encodeFilters, decodeFilters } from "@/lib/urlState";
+import { debounce } from "@/lib/debounce";
+
+// Mantener tus componentes visuales existentes
+import { TopBar } from "@/components/top-bar";
+import { Sidebar } from "@/components/sidebar";
+import { ResultsList } from "@/components/results-list";
+
+const mapsUrl = (addr?: string) =>
+  addr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr + ", San Martín, Buenos Aires")}` : "";
+
+function HomePageContent() {
+  const router = useRouter();
+  const sp = useSearchParams();
+
+  // 1) estado inicial desde URL
+  const [filters, setFilters] = React.useState<FilterState>(() =>
+    decodeFilters(sp as unknown as URLSearchParams)
+  );
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
+
+  // 2) estado → URL (shallow)
+  const pushUrl = React.useMemo(
+    () =>
+      debounce((f: FilterState) => {
+        const qs = encodeFilters(f);
+        router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+      }, 250),
+    [router]
+  );
+  React.useEffect(() => { pushUrl(filters); }, [filters, pushUrl]);
+
+  // 3) datos derivados
+  const allFacets = React.useMemo(() => facets(catalog), []);
+  const results   = React.useMemo(() => applyFilters(catalog, filters), [filters]);
+  const counts    = React.useMemo(() => facetCounts(catalog, filters), [filters]);
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[PAGE] q=", filters.q, "results=", results.length)
+  }
+
+  // 4) helpers
+  const setFilter = (k: keyof FilterState, v?: string) =>
+    setFilters(prev => ({ ...prev, [k]: v || "" }));
+  const clearAll = () => setFilters({ q: "" });
+
+  // 5) props para Sidebar (sin cambiar su markup)
+  const sidebarProps = {
+    searchValue: filters.q || "",
+    onSearchChange: (v: string) => setFilter("q", v),
+
+    levels: allFacets.level_norm,    levelCounts: counts.level_norm,    onLevelChange: (v:string)=>setFilter("level_norm", v),
+    families: allFacets.family,      familyCounts: counts.family,       onFamilyChange: (v:string)=>setFilter("family", v),
+    barrios: allFacets.barrio,       barrioCounts: counts.barrio,       onBarrioChange: (v:string)=>setFilter("barrio", v),
+    providers: allFacets.provider,   providerCounts: counts.provider,   onProviderChange: (v:string)=>setFilter("provider_name", v),
+    units: allFacets.unit,           unitCounts: counts.unit,           onUnitChange: (v:string)=>setFilter("unit", v),
+    titles: allFacets.title,         titleCounts: counts.title,         onTitleChange: (v:string)=>setFilter("title", v),
+
+    onClear: clearAll,
+  } as any;
+
+  // 6) adaptar datos a la tarjeta sin cambiar estilos
+  const adapted = React.useMemo(() => results.map(it => ({
+    id: `${it.provider_name}|${it.program_name}|${it.unit}`,
+    heading: it.program_name,
+    badgeRight: it.title,
+    chips: [it.provider_name, it.unit].filter(Boolean),
+    barrio: it.barrio,
+    address: it.address,
+    notes: it.notes || "",
+    level: it.level_norm || it.level,
+    family: it.family,
+    unit: it.unit,
+    provider: it.provider_name,
+    phone: it.phone || "",
+    email: it.email || "",
+    modality: it.modality || "",
+    maps: mapsUrl(it.address),
+    raw: it,
+  })), [results]);
 
   return (
     <div className="flex h-screen flex-col bg-background">
       <TopBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={filters.q || ""}
+        onSearchChange={(v: string) => setFilter("q", v)}
         onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
       />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          onFiltersChange={setActiveFilters}
-          isMobileOpen={isMobileSidebarOpen}
-          onMobileClose={() => setIsMobileSidebarOpen(false)}
-        />
-        {isPristine ? (
-          <div className="flex-1 overflow-y-auto p-4">
-            <GroupedHome data={dataset} />
+        <div className="hidden lg:block">
+          <Sidebar {...sidebarProps} />
+        </div>
+
+        {isMobileSidebarOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileSidebarOpen(false)} />
+            <div className="fixed inset-y-0 left-0 w-80 bg-background">
+              <Sidebar {...sidebarProps} />
+            </div>
           </div>
-        ) : (
-          <ResultsList searchQuery={searchQuery} activeFilters={activeFilters} />
         )}
+
+        <div className="flex-1 overflow-y-auto">
+          <ResultsList items={adapted} total={catalog.length} />
+        </div>
       </div>
     </div>
-  )
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div className="p-8">Cargando…</div>}>
+      <HomePageContent />
+    </Suspense>
+  );
 }
 
