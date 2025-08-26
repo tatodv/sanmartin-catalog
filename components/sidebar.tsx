@@ -1,63 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { ChevronLeft, ChevronRight, RotateCcw, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { FilterGroup } from "@/components/filter-group"
 import { cn } from "@/lib/utils"
-
-const filterGroups = [
-  {
-    id: "nivel",
-    title: "Nivel",
-    options: [
-      { id: "curso", label: "Curso", count: 45 },
-      { id: "secundaria", label: "Secundaria", count: 32 },
-      { id: "superior", label: "Superior", count: 298 },
-      { id: "tecnica", label: "Técnica", count: 56 },
-    ],
-  },
-  {
-    id: "barrio",
-    title: "Barrio",
-    options: [{ id: "a-validar-unsam", label: "A validar (UNSAM)", count: 431 }],
-  },
-  {
-    id: "unidad-academica",
-    title: "Unidad académica",
-    options: [
-      { id: "idaes", label: "Escuela Interdisciplinaria de Altos Estudios Sociales - IDAES", count: 45 },
-      { id: "arte-patrimonio", label: "Escuela de Arte y Patrimonio", count: 28 },
-      { id: "bio-nanotecnologias", label: "Escuela de Bio y Nanotecnologías", count: 35 },
-      { id: "ciencia-tecnologia", label: "Escuela de Ciencia y Tecnología", count: 52 },
-      { id: "economia-negocios", label: "Escuela de Economía y Negocios", count: 38 },
-      { id: "humanidades", label: "Escuela de Humanidades", count: 41 },
-      { id: "habitat-sostenibilidad", label: "Escuela de Hábitat y Sostenibilidad", count: 29 },
-      { id: "politica-gobierno", label: "Escuela de Política y Gobierno", count: 33 },
-      { id: "dan-beninson", label: "Instituto Dan Beninson", count: 18 },
-      { id: "rehabilitacion-movimiento", label: "Instituto de Rehabilitación y Movimiento", count: 22 },
-      { id: "sabato", label: "Instituto de Tecnología Prof. Jorge Sabato", count: 47 },
-      { id: "oespu", label: "Observatorio de Educación Superior y Políticas Universitarias (OESPU)", count: 43 },
-    ],
-  },
-  {
-    id: "titulo",
-    title: "Título",
-    options: [
-      { id: "arquitectura", label: "Arquitectura", count: 12 },
-      { id: "contador", label: "Contador", count: 8 },
-      { id: "doctorado", label: "Doctorado", count: 67 },
-      { id: "especializacion", label: "Especialización", count: 89 },
-      { id: "ingenieria", label: "Ingeniería", count: 45 },
-      { id: "licenciatura", label: "Licenciatura", count: 134 },
-      { id: "licenciatura-tecnicatura", label: "Licenciatura, Tecnicatura", count: 23 },
-      { id: "maestria", label: "Maestría", count: 78 },
-      { id: "martillero", label: "Martillero", count: 3 },
-      { id: "profesorado", label: "Profesorado", count: 56 },
-      { id: "tecnicatura", label: "Tecnicatura", count: 67 },
-    ],
-  },
-]
+import catalog from "@/app/(data)/catalog.json"
+import type { Item } from "@/lib/types"
+import { deriveFacets } from "@/lib/filters"
 
 interface SidebarProps {
   onFiltersChange?: (filters: Record<string, string[]>) => void
@@ -68,6 +18,66 @@ interface SidebarProps {
 export function Sidebar({ onFiltersChange, isMobileOpen, onMobileClose }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({})
+
+  const dataset = catalog as unknown as Item[]
+
+  const filterGroups = useMemo(() => {
+    const facets = deriveFacets(dataset)
+
+    const countBy = (getter: (item: Item) => string | null | undefined) =>
+      dataset.reduce<Record<string, number>>((acc, item) => {
+        const val = getter(item)
+        if (!val) return acc
+        acc[val] = (acc[val] ?? 0) + 1
+        return acc
+      }, {})
+
+    const counts = {
+      level: countBy((d) => d.level_norm ?? d.level_or_modality),
+      barrio: countBy((d) => d.barrio),
+      unit: countBy((d) => d.unit),
+      title: countBy((d) => d.title),
+    }
+
+    return [
+      {
+        id: "nivel",
+        title: "Nivel",
+        options: facets.levels.map((level) => ({
+          id: level,
+          label: level,
+          count: counts.level[level] || 0,
+        })),
+      },
+      {
+        id: "barrio",
+        title: "Barrio",
+        options: facets.barrios.map((barrio) => ({
+          id: barrio,
+          label: barrio,
+          count: counts.barrio[barrio] || 0,
+        })),
+      },
+      {
+        id: "unidad-academica",
+        title: "Unidad académica",
+        options: facets.units.map((unit) => ({
+          id: unit,
+          label: unit,
+          count: counts.unit[unit] || 0,
+        })),
+      },
+      {
+        id: "titulo",
+        title: "Título",
+        options: facets.titles.map((title) => ({
+          id: title,
+          label: title,
+          count: counts.title[title] || 0,
+        })),
+      },
+    ]
+  }, [dataset])
 
   const handleFilterChange = (groupId: string, optionId: string, checked: boolean) => {
     setSelectedFilters((prev) => {

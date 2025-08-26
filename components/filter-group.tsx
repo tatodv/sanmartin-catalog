@@ -16,24 +16,28 @@ interface FilterGroupProps {
   onOptionChange: (optionId: string, checked: boolean) => void
 }
 
+const slug = (str: string) => str.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+
 export function FilterGroup({ title, options, selectedOptions, onOptionChange }: FilterGroupProps) {
+  const groupSlug = slug(title)
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-medium text-foreground">{title}</h3>
       <div className="space-y-2">
         {options.map((option) => {
           const isSelected = selectedOptions.includes(option.id)
+          const domId = `${groupSlug}-${slug(option.id)}`
           return (
             <div key={option.id} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Checkbox
-                  id={option.id}
+                  id={domId}
                   checked={isSelected}
                   onCheckedChange={(checked) => onOptionChange(option.id, checked as boolean)}
                   className="rounded-md border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:ring-primary"
                 />
                 <label
-                  htmlFor={option.id}
+                  htmlFor={domId}
                   className="text-sm text-foreground cursor-pointer hover:text-primary transition-colors"
                 >
                   {option.label}
