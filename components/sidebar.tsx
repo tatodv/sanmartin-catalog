@@ -103,7 +103,8 @@ export function Sidebar({
       <aside
         className={cn(
           "relative border-r border-border bg-card/20 backdrop-blur-sm transition-all duration-300",
-          "hidden lg:block",
+          // visible como panel deslizante en móvil, fijo en desktop
+          "block lg:block",
           isCollapsed ? "w-12" : "w-80",
           "lg:relative lg:translate-x-0",
           "fixed inset-y-0 left-0 z-50 w-80 lg:z-auto",
