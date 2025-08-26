@@ -121,15 +121,14 @@ export default function ResultsList({ items }: { items: ResultCard[] }) {
               )}
 
         <div className="flex items-center gap-2">
-          <Button size="sm" className="rounded-xl bg-accent hover:bg-accent/90 focus-visible:ring-accent shadow-sm">
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Ver más
-          </Button>
                 {it.maps && (
                   <a href={it.maps} target="_blank" rel="noreferrer">
-                    <Button variant="outline" size="sm" className="rounded-xl border-border/50 hover:bg-accent/10 hover:text-accent focus-visible:ring-accent bg-background/80 shadow-sm">Cómo llegar</Button>
+          <Button size="sm" className="rounded-xl bg-accent hover:bg-accent/90 focus-visible:ring-accent shadow-sm">
+            <ExternalLink className="h-4 w-4 mr-2" />
+              Cómo llegar
+            </Button>
                   </a>
-                )}
+          )}
         </div>
       </CardContent>
     </Card>
