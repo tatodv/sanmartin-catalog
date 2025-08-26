@@ -14,12 +14,13 @@ interface FilterGroupProps {
   options: FilterOption[]
   selectedOptions: string[]
   onOptionChange: (optionId: string, checked: boolean) => void
+  defaultOpen?: boolean
 }
 
-export function FilterGroup({ title, options, selectedOptions, onOptionChange }: FilterGroupProps) {
+export function FilterGroup({ title, options, selectedOptions, onOptionChange, defaultOpen }: FilterGroupProps) {
   const selectedCount = selectedOptions.length
   return (
-    <details className="group rounded-xl border border-border/50 bg-card/50 overflow-hidden">
+    <details className="group rounded-xl border border-border/50 bg-card/50 overflow-hidden" {...(defaultOpen ? { open: true } : {})}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2">
         <h3 className="text-base font-black text-foreground">{title}</h3>
         <Badge variant="secondary" className="rounded-full bg-muted/60 text-muted-foreground">

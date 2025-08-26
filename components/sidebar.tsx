@@ -139,8 +139,37 @@ export function Sidebar({
           )}
         >
           <div className="p-6 pb-4 border-b border-border/50 pt-16 lg:pt-6">
-            <h2 className="text-xl font-black text-foreground tracking-tight">Filtros</h2>
-            <p className="text-sm text-muted-foreground">Refina tu búsqueda</p>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h2 className="text-xl font-black text-foreground tracking-tight">Filtros</h2>
+                <p className="text-sm text-muted-foreground">Refina tu búsqueda</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => {
+                    document.querySelectorAll<HTMLDetailsElement>("aside details").forEach(d => d.open = true)
+                  }}
+                >
+                  Expandir
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-lg"
+                  onClick={() => {
+                    document.querySelectorAll<HTMLDetailsElement>("aside details").forEach(d => d.open = false)
+                    // Reabrir Nivel por requerimiento
+                    const first = document.querySelector<HTMLDetailsElement>("aside details[data-group-id=\"nivel\"]")
+                    if (first) first.open = true
+                  }}
+                >
+                  Contraer
+                </Button>
+              </div>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-3 overscroll-contain">
@@ -152,6 +181,7 @@ export function Sidebar({
                   options={group.options}
                   selectedOptions={selectedFilters[group.id] || []}
                   onOptionChange={(optionId, checked) => handleFilterChange(group.id, optionId, checked)}
+                  defaultOpen={group.id === "nivel"}
                 />
               ))}
             </div>
