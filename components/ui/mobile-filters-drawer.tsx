@@ -35,8 +35,7 @@ export default function MobileFiltersDrawer({
     <>
       <div
         aria-hidden="true"
-        data-state={open ? "open" : "closed"}
-        className="fixed inset-0 z-40 bg-background/50 backdrop-blur-sm transition-opacity data-[state=closed]:opacity-0 data-[state=open]:opacity-100 lg:hidden"
+        className={`fixed inset-0 z-40 bg-background/50 backdrop-blur-sm transition-opacity lg:hidden ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         onClick={onClose}
       />
 
@@ -44,8 +43,7 @@ export default function MobileFiltersDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="filters-title"
-        data-state={open ? "open" : "closed"}
-        className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm h-[100svh] bg-card shadow-xl overflow-y-auto transition-transform will-change-transform data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0 lg:hidden"
+        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm h-[100svh] bg-card shadow-xl overflow-y-auto transition-transform will-change-transform transform lg:hidden ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <header className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b px-4 py-3 flex items-center justify-between">
           <h2 id="filters-title" className="text-sm font-semibold">{title}</h2>

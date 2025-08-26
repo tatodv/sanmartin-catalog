@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Search, MapPin, Loader2, Filter, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,14 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
   const [isLocating, setIsLocating] = useState(false)
   const [radius, setRadius] = useState("5")
   const { theme, toggleTheme } = useTheme()
+
+  // debounce 300ms
+  const [raw, setRaw] = useState(searchQuery)
+  useEffect(() => setRaw(searchQuery), [searchQuery])
+  useEffect(() => {
+    const id = setTimeout(() => { if (raw !== searchQuery) onSearchChange?.(raw) }, 300)
+    return () => clearTimeout(id)
+  }, [raw])
 
   const handleLocationRequest = async () => {
     setIsLocating(true)
@@ -68,8 +76,8 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
             <Search className="absolute left-3 lg:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por institución, programa, título..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange?.(e.target.value)}
+              value={raw}
+              onChange={(e) => setRaw(e.target.value)}
               className="pl-10 lg:pl-12 h-10 lg:h-12 rounded-xl border-border/50 bg-background/80 backdrop-blur-sm focus-visible:ring-accent focus-visible:ring-2 focus-visible:border-accent/50 transition-all shadow-sm text-sm lg:text-base"
             />
           </div>
