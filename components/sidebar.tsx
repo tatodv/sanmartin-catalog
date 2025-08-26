@@ -103,7 +103,8 @@ export function Sidebar({
       <aside
         className={cn(
           "relative border-r border-border bg-card/20 backdrop-blur-sm transition-all duration-300",
-          "hidden lg:block",
+          // visible como panel deslizante en móvil, fijo en desktop
+          "block lg:block",
           isCollapsed ? "w-12" : "w-80",
           "lg:relative lg:translate-x-0",
           "fixed inset-y-0 left-0 z-50 w-80 lg:z-auto",
@@ -138,12 +139,12 @@ export function Sidebar({
           )}
         >
           <div className="p-6 pb-4 border-b border-border/50 pt-16 lg:pt-6">
-            <h2 className="text-lg font-bold text-foreground">Filtros</h2>
+            <h2 className="text-xl font-black text-foreground tracking-tight">Filtros</h2>
             <p className="text-sm text-muted-foreground">Refina tu búsqueda</p>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4 overscroll-contain">
-            <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-3 overscroll-contain">
+            <div className="space-y-3">
               {groups.map((group) => (
                 <FilterGroup
                   key={group.id}
