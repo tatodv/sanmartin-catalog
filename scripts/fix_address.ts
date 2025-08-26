@@ -4,6 +4,8 @@ import path from "node:path";
 type Row = Record<string, any>;
 
 const TARGET_ADDRESS = "Av. 25 de Mayo 1169, B1650 San Martín, Provincia de Buenos Aires";
+const TARGET_PLACE = "UNSAM";
+const TARGET_BARRIO = "San Martín";
 
 function fixFile(filePath: string) {
   if (!fs.existsSync(filePath)) {
@@ -15,13 +17,18 @@ function fixFile(filePath: string) {
 
   let changed = 0;
   for (const it of data) {
-    if (it && typeof it === "object" && it.provider_name === TARGET_ADDRESS) {
-      // Mover a address si está vacío o ausente
-      if (!it.address || String(it.address).trim() === "") {
-        it.address = TARGET_ADDRESS;
+    const isProviderEqualsAddress = it && typeof it === "object" && it.provider_name === TARGET_ADDRESS;
+    const isAddressMatch = it && typeof it === "object" && it.address === TARGET_ADDRESS;
+
+    if (isProviderEqualsAddress || isAddressMatch) {
+      // Asegurar address correcto
+      it.address = TARGET_ADDRESS;
+      // Nombre del lugar estandarizado
+      it.provider_name = TARGET_PLACE;
+      // Barrio por defecto
+      if (!it.barrio || String(it.barrio).trim() === "") {
+        it.barrio = TARGET_BARRIO;
       }
-      // Dejar provider_name vacío para no duplicar información de dirección
-      it.provider_name = "";
       changed++;
     }
   }
