@@ -5,8 +5,58 @@
     "title": "Licenciatura",
     "unit": "Escuela de Economía y Negocios",
     "address": "Av. 25 de Mayo y Francia",
+    "barrio": "San Martín",
+    "level_or_modality": "Licenciatura",
     "level_norm": "Superior",
     "family": "Administración y Comercialización",
-    "_search": "unsam licenciatura en economia licenciatura escuela de economia y negocios av 25 de mayo y francia"
+    "_search": "unsam licenciatura en economia licenciatura escuela de economia y negocios san martin av 25 de mayo y francia"
+  },
+  {
+    "provider_name": "Instituto Superior de Formación Docente N° 1",
+    "program_name": "Profesorado de Educación Inicial",
+    "title": "Profesorado",
+    "unit": "ISFD N° 1",
+    "address": "Calle Sarmiento 123",
+    "barrio": "Villa Maipú",
+    "level_or_modality": "Profesorado",
+    "level_norm": "Superior",
+    "family": null,
+    "_search": "instituto superior de formacion docente n 1 profesorado de educacion inicial profesorado isfd n 1 villa maipu calle sarmiento 123"
+  },
+  {
+    "provider_name": "Escuela Técnica N°2",
+    "program_name": "Técnico en Electrónica",
+    "title": "Tecnicatura",
+    "unit": "Escuela Técnica N°2",
+    "address": "Av. Central 456",
+    "barrio": "Villa Ballester",
+    "level_or_modality": "Escuela Técnica",
+    "level_norm": "Técnica",
+    "family": "Electrónica",
+    "_search": "escuela tecnica n 2 tecnico en electronica tecnicatura escuela tecnica n 2 villa ballester av central 456"
+  },
+  {
+    "provider_name": "Centro de Formación Profesional N°401",
+    "program_name": "Curso de Panadería y Gastronomía",
+    "title": "Curso",
+    "unit": "CFP N°401",
+    "address": "Calle Pan 789",
+    "barrio": "José León Suárez",
+    "level_or_modality": "Curso",
+    "level_norm": "Curso",
+    "family": "Gastronomía",
+    "_search": "centro de formacion profesional n 401 curso de panaderia y gastronomia curso cfp n 401 jose leon suarez calle pan 789"
+  },
+  {
+    "provider_name": "Instituto Privado Sagrado Corazón",
+    "program_name": "Bachillerato en Ciencias Sociales",
+    "title": "Secundaria",
+    "unit": "Secundario Sagrado Corazón",
+    "address": "Belgrano 1234",
+    "barrio": "San Andrés",
+    "level_or_modality": "Bachillerato",
+    "level_norm": "Secundaria",
+    "family": null,
+    "_search": "instituto privado sagrado corazon bachillerato en ciencias sociales secundaria secundario sagrado corazon san andres belgrano 1234"
   }
 ]
