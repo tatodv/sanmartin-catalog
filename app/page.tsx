@@ -11,7 +11,7 @@ import { debounce } from "@/lib/debounce";
 // Mantener tus componentes visuales existentes
 import { TopBar } from "@/components/top-bar";
 import { Sidebar } from "@/components/sidebar";
-import ResultsList from "@/components/results-list";
+import ResultsList from "@/components/ui/results-list";
 
 // id estable y único por item (hash + índice como defensa)
 function makeKey(base: string, i: number) {
@@ -71,6 +71,8 @@ function HomePageContent() {
     titles: allFacets.title,         titleCounts: counts.title,         onTitleChange: (v:string)=>setFilter("title", v),
 
     onClear: clearAll,
+    isMobileOpen: isMobileSidebarOpen,
+    onMobileClose: () => setIsMobileSidebarOpen(false),
   } as any;
 
   // 6) adaptar datos a la tarjeta sin cambiar estilos
@@ -110,20 +112,11 @@ function HomePageContent() {
         onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
       />
       <div className="flex flex-1 overflow-hidden">
-        <div className="hidden lg:block">
-          <Sidebar {...sidebarProps} />
-        </div>
+        {/* Sidebar: desktop fijo y móvil deslizante controlado por props */}
+        <Sidebar {...sidebarProps} />
 
-        {isMobileSidebarOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden">
-            <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileSidebarOpen(false)} />
-            <div className="fixed inset-y-0 left-0 w-80 bg-background">
-              <Sidebar {...sidebarProps} />
-            </div>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto">
+        {/* Contenedor de resultados con padding para separar del sidebar */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
           <ResultsList items={adapted} />
         </div>
       </div>
