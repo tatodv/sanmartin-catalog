@@ -1,3 +1,4 @@
+// DO NOT MODIFY: data wiring & filtering logic
 import Fuse from "fuse.js";
 import type { Item } from "./types";
 

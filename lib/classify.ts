@@ -1,3 +1,4 @@
+// DO NOT MODIFY: data wiring & filtering logic
 import type { Item } from "./types";
 import taxonomy from "@/app/(data)/taxonomy.json";
 

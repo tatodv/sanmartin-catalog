@@ -1,54 +1,82 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { TopBar } from "@/components/top-bar"
-import { Sidebar } from "@/components/sidebar"
-import { ResultsList } from "@/components/results-list"
-import GroupedHome from "@/components/GroupedHome"
-import catalog from "./(data)/catalog.json"
-import type { Item } from "@/lib/types"
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import catalog from "./(data)/catalog.json";
+import type { Item } from "@/lib/types";
+import { deriveFacets, applyFilters, type ActiveFilters } from "@/lib/filters";
+import Filters from "@/components/Filters";
+import DataTable from "@/components/DataTable";
+import GroupedHome from "@/components/GroupedHome";
+import { Shell } from "@/components/ui/shell";
+
+const MapEmbed = dynamic(() => import("@/components/MapEmbed"), { ssr: false });
+
+const EMPTY: ActiveFilters = {
+  q: "",
+  unit: [],
+  title: [],
+  level: [],
+  barrio: [],
+  withGeo: false,
+  near: null,
+  radiusKm: undefined,
+};
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({})
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  const dataset = (catalog as unknown) as Item[]
-  
-  // Estado inicial sin filtros de distancia activos
-  const [geoFilters, setGeoFilters] = useState({
-    withGeo: false,
-    near: null,
-    radiusKm: undefined
-  })
-  
+  const dataset = catalog as Item[];
+  const facets = useMemo(() => deriveFacets(dataset), [dataset]);
+  const [filters, setFilters] = useState<ActiveFilters>(EMPTY);
+  const [showMap, setShowMap] = useState(false);
+
+  const results = useMemo(() => applyFilters(dataset, filters), [dataset, filters]);
   const isPristine =
-    searchQuery.trim() === "" &&
-    Object.values(activeFilters).every((arr) => (arr?.length ?? 0) === 0) &&
-    !geoFilters.withGeo &&
-    !geoFilters.near
+    !filters.q &&
+    !filters.withGeo &&
+    !filters.near &&
+    !filters.unit.length &&
+    !filters.title.length &&
+    !filters.level.length &&
+    !filters.barrio.length;
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <TopBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-      />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          onFiltersChange={setActiveFilters}
-          isMobileOpen={isMobileSidebarOpen}
-          onMobileClose={() => setIsMobileSidebarOpen(false)}
-        />
-        {isPristine ? (
-          <div className="flex-1 overflow-y-auto p-4">
+    <Shell>
+      <div className="flex">
+        <Filters facets={facets} value={filters} onChange={setFilters} />
+        <main className="flex-1 p-4 space-y-4">
+          <input
+            value={filters.q}
+            onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+            placeholder="Buscar..."
+            className="w-full p-2 border border-slate-200 rounded"
+          />
+          {isPristine ? (
             <GroupedHome data={dataset} />
-          </div>
-        ) : (
-          <ResultsList searchQuery={searchQuery} activeFilters={activeFilters} />
-        )}
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-slate-600">{results.length} resultados</p>
+                <button
+                  onClick={() => setShowMap(!showMap)}
+                  className="text-sm text-indigo-700"
+                >
+                  {showMap ? "Ocultar mapa" : "Mostrar mapa"}
+                </button>
+              </div>
+              <div className={`grid gap-4 ${showMap ? "lg:grid-cols-2" : ""}`}>
+                <div>
+                  <DataTable data={results} />
+                </div>
+                {showMap && (
+                  <div className="h-96">
+                    <MapEmbed data={results} />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </main>
       </div>
-    </div>
-  )
+    </Shell>
+  );
 }
-

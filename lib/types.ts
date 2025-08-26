@@ -1,3 +1,4 @@
+// DO NOT MODIFY: data wiring & filtering logic
 // Tipado base para ítems del catálogo
 export type Item = {
   provider_name: string;
