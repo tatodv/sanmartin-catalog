@@ -39,7 +39,7 @@ export function FiltersSidebar({
   const closeDrawer = () => onMobileClose?.()
 
   const groups = [
-    { id: "nivel", title: "Tipo", options: levels.map(l => ({ id: l, label: l, count: levelCounts[l] || 0 })).filter(o => o.count > 0), count: Object.values(levelCounts).reduce((a,b)=>a+b,0) },
+    { id: "nivel", title: "Tipo de Formación", options: levels.map(l => ({ id: l, label: l, count: levelCounts[l] || 0 })).filter(o => o.count > 0), count: Object.values(levelCounts).reduce((a,b)=>a+b,0) },
     { id: "familia", title: "Carrera", options: families.map(v => ({ id: v, label: v, count: familyCounts[v] || 0 })).filter(o => o.count > 0), count: Object.values(familyCounts).reduce((a,b)=>a+b,0) },
     { id: "institucion", title: "Institución", options: barrios.map(v => ({ id: v, label: v, count: barrioCounts[v] || 0 })).filter(o => o.count > 0), count: Object.values(barrioCounts).reduce((a,b)=>a+b,0) },
     { id: "unidad-academica", title: "Unidad Académica / Área", options: providers.map(v => ({ id: v, label: v, count: providerCounts[v] || 0 })).filter(o => o.count > 0), count: Object.values(providerCounts).reduce((a,b)=>a+b,0) },

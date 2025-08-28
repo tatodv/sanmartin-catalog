@@ -29,7 +29,7 @@ const COLOR: Record<string, string> = {
   curso: "curso",
 };
 
-export default function ProgramCard({ program: p }: { program: Program }) {
+function ProgramCard({ program: p }: { program: Program }) {
   const k = toKey(p.degree_title);
   const cfg = typeConfig[k] || { color: "#64748b", bg: "bg-slate-500/10", border: "border-slate-600", icon: GraduationCap };
   const ringClass = COLOR[k] ? `ring--${COLOR[k]}` : "";
@@ -119,3 +119,5 @@ export default function ProgramCard({ program: p }: { program: Program }) {
     </Card>
   );
 }
+
+export default React.memo(ProgramCard)

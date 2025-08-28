@@ -1,6 +1,7 @@
 .program-card { --ring:#e5e7eb; --bg:#ffffff; --fg:#0b0b0d; --muted:#6b7280;
   border:1px solid var(--ring); background:var(--bg); color:var(--fg);
   border-radius:20px; padding:16px;
+  content-visibility:auto; contain-intrinsic-size: 280px 340px;
 }
 .program-card__header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .badge { font-size:12px; line-height:1; padding:6px 10px; border-radius:999px; border:1px solid currentColor; opacity:.9; }

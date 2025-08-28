@@ -23,6 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <link rel="preload" as="image" href="/logos/micro_logo_claro.svg" />
+        <link rel="preload" as="image" href="/logos/micro_logo-oscuro.svg" />
+      </head>
       <body className={`font-sans antialiased ${inter.className}`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           {children}
