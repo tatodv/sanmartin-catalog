@@ -127,11 +127,29 @@ export default function HomeClient({ items }: { items: Program[] }) {
 
   // Normalizar coords de items si existieran como lat/lon en datos (no romper si no están)
   const baseWithCoords = React.useMemo(() => {
+    const parseFromLinks = (links?: { label?: string; url?: string }[]): LatLng | undefined => {
+      if (!Array.isArray(links)) return undefined
+      const link = links.find(l => typeof l?.url === "string" && /maps\.google\./i.test(l.url))
+      if (!link?.url) return undefined
+      try {
+        const u = new URL(link.url)
+        // Buscar parámetros q o ll con "lat,lng"
+        const q = u.searchParams.get("q") || u.searchParams.get("ll") || ""
+        const m = q.match(/(-?[0-9]+\.?[0-9]*),\s*(-?[0-9]+\.?[0-9]*)/)
+        if (m) {
+          const lat = Number(m[1]); const lng = Number(m[2])
+          if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng }
+        }
+      } catch {}
+      return undefined
+    }
+
     return results.map((p) => {
       const anyP = p as any
       const lat = typeof anyP.lat === "number" ? anyP.lat : undefined
       const lng = typeof anyP.lng === "number" ? anyP.lng : (typeof anyP.lon === "number" ? anyP.lon : undefined)
-      const coords: LatLng | undefined = (typeof lat === "number" && typeof lng === "number") ? { lat, lng } : undefined
+      let coords: LatLng | undefined = (typeof lat === "number" && typeof lng === "number") ? { lat, lng } : undefined
+      if (!coords) coords = parseFromLinks(anyP.links)
       return { ...p, coords }
     })
   }, [results])
