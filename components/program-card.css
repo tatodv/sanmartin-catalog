@@ -1,4 +1,4 @@
-.program-card { --ring:#2a2a2a; --bg:#0b0b0d; --fg:#e8e9ee; --muted:#9aa0a6;
+.program-card { --ring:#e5e7eb; --bg:#ffffff; --fg:#0b0b0d; --muted:#6b7280;
   border:1px solid var(--ring); background:var(--bg); color:var(--fg);
   border-radius:20px; padding:16px;
 }
@@ -14,13 +14,13 @@
 .badge--diplomatura,.ring--diplomatura{ color:#a3e635;}
 .badge--curso,.ring--curso{ color:#94a3b8;}
 .program-card__unit{ margin-top:2px; font-size:14px; color:var(--muted);}
-.program-card__pill{ margin-top:12px; border:1px solid var(--ring); background:rgba(255,255,255,.03);
+.program-card__pill{ margin-top:12px; border:1px solid var(--ring); background:rgba(0,0,0,.03);
   border-radius:14px; padding:10px 12px; font-size:14px;
 }
 .program-card__address{ margin-top:10px; white-space:pre-line; color:var(--fg); font-size:14px; opacity:.9;}
 .actions{ margin-top:14px; display:flex; flex-wrap:wrap; gap:10px;}
-.action-btn{ display:inline-flex; align-items:center; gap:8px; font-size:14px; padding:8px 12px; border-radius:12px; border:1px solid var(--ring); text-decoration:none; color:var(--fg);}
-.action-btn:hover{ border-color:#4b5563;}
+.action-btn{ display:inline-flex; align-items:center; gap:8px; font-size:14px; padding:8px 12px; border-radius:12px; border:1px solid var(--ring); text-decoration:none; color:var(--fg); background:#fff;}
+.action-btn:hover{ border-color:#9ca3af;}
 .action-btn.disabled{ opacity:0.5; cursor:not-allowed; color:var(--muted);}
 .action-btn.disabled:hover{ border-color:var(--ring);}
 .icon{ width:16px; height:16px;}
