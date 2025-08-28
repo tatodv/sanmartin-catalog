@@ -11,9 +11,13 @@ interface TopBarProps {
   searchQuery?: string
   onSearchChange?: (query: string) => void
   onMobileMenuToggle?: () => void
+  // Integración Cerca de mí (opcional):
+  // nearbyOn ⇔ botón "Cerca de mí"; radiusKm ⇔ Select de km
+  onNearbyRequest?: () => void
+  onRadiusChange?: (km: number) => void
 }
 
-export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }: TopBarProps) {
+export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle, onNearbyRequest, onRadiusChange }: TopBarProps) {
   const [isLocating, setIsLocating] = useState(false)
   const [radius, setRadius] = useState("5")
   const { theme, toggleTheme } = useTheme()
@@ -34,6 +38,8 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
           (position) => {
             console.log("Ubicación obtenida:", position.coords)
             setIsLocating(false)
+            // Notificar al contenedor que se solicitó ubicación
+            onNearbyRequest?.()
           },
           (error) => {
             console.error("Error obteniendo ubicación:", error)
@@ -50,7 +56,7 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
   return (
     <header className="border-b border-border bg-card/50 backdrop-blur-xl">
       <div className="px-4 lg:px-6 flex flex-col gap-2">
-        <div className="flex h-16 items-center gap-4">
+        <div className="flex h-16 items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -61,18 +67,33 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
             <span className="sr-only">Mostrar filtros</span>
           </Button>
 
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-accent to-secondary shadow-lg" />
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-foreground">Red de Formación San Martín</h1>
-              <p className="text-xs text-muted-foreground">Encuentra tu futuro</p>
-            </div>
-            <div className="block sm:hidden">
-              <h1 className="text-base font-bold text-foreground">Red de Formación San Martín</h1>
-            </div>
+          <div className="h-12 sm:h-12 lg:h-12 flex-1 min-w-0 sm:flex-none">
+            {theme === 'dark' ? (
+              <img
+                src="/logos/micro_logo-oscuro.svg"
+                alt="Red de Formación San Martín"
+                className="h-full w-full sm:w-auto object-contain"
+                width={240}
+                height={48}
+                decoding="async"
+                loading="eager"
+                fetchPriority="high"
+              />
+            ) : (
+              <img
+                src="/logos/micro_logo_claro.svg"
+                alt="Red de Formación San Martín"
+                className="h-full w-full sm:w-auto object-contain"
+                width={240}
+                height={48}
+                decoding="async"
+                loading="eager"
+                fetchPriority="high"
+              />
+            )}
           </div>
 
-          <div className="flex flex-1 items-center gap-2 lg:gap-3 max-w-3xl hidden sm:flex">
+          <div className="flex flex-1 items-center gap-2 lg:gap-3 hidden sm:flex min-w-0">
             <div className="relative flex-1">
               <Search className="absolute left-3 lg:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -94,7 +115,7 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
               <span className="ml-2 hidden lg:inline font-medium">Cerca de mí</span>
             </Button>
 
-            <Select value={radius} onValueChange={setRadius}>
+            <Select value={radius} onValueChange={(v)=>{ setRadius(v); const n = Number(v); if (!Number.isNaN(n)) onRadiusChange?.(n); }}>
               <SelectTrigger className="w-20 lg:w-28 h-10 lg:h-12 rounded-xl border-border/50 focus:ring-accent focus:ring-2 focus:border-accent/50 transition-all bg-background/80 shadow-sm hidden sm:flex">
                 <SelectValue />
               </SelectTrigger>
@@ -153,7 +174,7 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
               <span className="ml-2 font-medium">Cerca de mí</span>
             </Button>
 
-            <Select value={radius} onValueChange={setRadius}>
+            <Select value={radius} onValueChange={(v)=>{ setRadius(v); const n = Number(v); if (!Number.isNaN(n)) onRadiusChange?.(n); }}>
               <SelectTrigger className="w-28 h-10 rounded-xl border-border/50 focus:ring-accent focus:ring-2 focus:border-accent/50 transition-all bg-background/80 shadow-sm">
                 <SelectValue />
               </SelectTrigger>

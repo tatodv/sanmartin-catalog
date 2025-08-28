@@ -23,6 +23,7 @@ type ResultCard = {
   area?: string;         // family
   barrio?: string;
   address?: string;
+  place?: string;
   notes?: string;
   phone?: string;
   email?: string;
@@ -43,11 +44,13 @@ const toView = (i: ResultCard) => ({
   id: i.id,
   heading: i.heading ?? i.program_name ?? "",
   badgeRight: i.badgeRight ?? i.title ?? "",
-  chips: i.chips ?? [i.provider ?? i.provider_name, i.unit].filter(Boolean) as string[],
+  // Solo mostramos la unidad en la línea de chips; el nombre de la institución va en la sección de ubicación
+  chips: i.chips ?? [i.unit].filter(Boolean) as string[],
   level: i.level ?? i.level_norm ?? "",
   area: i.area ?? i.family ?? "",
-  barrio: i.barrio ?? "Barrio no especificado",
+  barrio: i.barrio ?? "",
   address: i.address ?? "",
+  place: i.place ?? i.provider_name ?? i.provider ?? "",
   notes: i.notes ?? "",
   phone: i.phone ?? "",
   email: i.email ?? "",
@@ -174,7 +177,7 @@ export default function ResultsList({ items = [] as ResultCard[] }) {
                 {it.heading}
               </h3>
 
-              {/* institución • unidad */}
+              {/* unidad */}
               {it.chips?.length ? (
                 <div className="flex items-center gap-2 mb-3">
                   <span className={`w-2 h-2 rounded-full ${accent.icon.replace("text-", "bg-")}`} />
@@ -191,15 +194,17 @@ export default function ResultsList({ items = [] as ResultCard[] }) {
                 </p>
               ) : null}
 
-              {/* ubicación */}
-              {(it.barrio || it.address) ? (
+              {/* ubicación: nombre del lugar en negrita y dirección debajo */}
+              {(it.place || it.address || it.barrio) ? (
                 <div className="flex items-start gap-2 text-sm text-muted-foreground mb-4">
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <div>
-                    <div className="font-medium text-foreground">{it.barrio || "Barrio no especificado"}</div>
-                    {it.address ? (
-                      <div className="text-xs text-muted-foreground">{it.address}</div>
+                    {it.place ? (
+                      <div className="font-bold text-foreground">{it.place}</div>
                     ) : null}
+                    <div className="text-xs text-muted-foreground">
+                      {it.address || it.barrio || ""}
+                    </div>
                   </div>
                 </div>
               ) : null}
