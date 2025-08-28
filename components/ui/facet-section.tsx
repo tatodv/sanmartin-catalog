@@ -7,6 +7,7 @@ type Props = {
   defaultOpen?: boolean;
   children: React.ReactNode;
   className?: string;
+  hideTitle?: boolean;
 };
 
 export default function FacetSection({
@@ -15,9 +16,21 @@ export default function FacetSection({
   defaultOpen = false,
   children,
   className = "",
+  hideTitle = false,
 }: Props) {
   const [open, setOpen] = React.useState(defaultOpen);
   const id = React.useId();
+
+  // Si hideTitle está activo, no renderizamos el header externo
+  if (hideTitle) {
+    return (
+      <section className={`border-b last:border-b-0 ${className}`}>
+        <div className="pb-3 space-y-2">
+          {children}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={`border-b last:border-b-0 ${className}`}>
@@ -43,7 +56,7 @@ export default function FacetSection({
           >
             <polygon points="2,1 8,5 2,9" fill="currentColor" />
           </svg>
-          <span>{title}</span>
+          {!hideTitle && title ? <span>{title}</span> : null}
         </span>
 
         {typeof count !== "undefined" && (

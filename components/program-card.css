@@ -1,0 +1,26 @@
+.program-card { --ring:#2a2a2a; --bg:#0b0b0d; --fg:#e8e9ee; --muted:#9aa0a6;
+  border:1px solid var(--ring); background:var(--bg); color:var(--fg);
+  border-radius:20px; padding:16px;
+}
+.program-card__header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.badge { font-size:12px; line-height:1; padding:6px 10px; border-radius:999px; border:1px solid currentColor; opacity:.9; }
+.badge--licenciatura,.ring--licenciatura{ color:#4ade80;}
+.badge--maestria,.ring--maestria{ color:#60a5fa;}
+.badge--doctorado,.ring--doctorado{ color:#c084fc;}
+.badge--tecnicatura,.ring--tecnicatura{ color:#34d399;}
+.badge--especializacion,.ring--especializacion{ color:#f59e0b;}
+.badge--profesorado,.ring--profesorado{ color:#f472b6;}
+.badge--ingenieria,.ring--ingenieria{ color:#22d3ee;}
+.badge--diplomatura,.ring--diplomatura{ color:#a3e635;}
+.badge--curso,.ring--curso{ color:#94a3b8;}
+.program-card__unit{ margin-top:2px; font-size:14px; color:var(--muted);}
+.program-card__pill{ margin-top:12px; border:1px solid var(--ring); background:rgba(255,255,255,.03);
+  border-radius:14px; padding:10px 12px; font-size:14px;
+}
+.program-card__address{ margin-top:10px; white-space:pre-line; color:var(--fg); font-size:14px; opacity:.9;}
+.actions{ margin-top:14px; display:flex; flex-wrap:wrap; gap:10px;}
+.action-btn{ display:inline-flex; align-items:center; gap:8px; font-size:14px; padding:8px 12px; border-radius:12px; border:1px solid var(--ring); text-decoration:none; color:var(--fg);}
+.action-btn:hover{ border-color:#4b5563;}
+.action-btn.disabled{ opacity:0.5; cursor:not-allowed; color:var(--muted);}
+.action-btn.disabled:hover{ border-color:var(--ring);}
+.icon{ width:16px; height:16px;}
