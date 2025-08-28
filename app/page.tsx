@@ -1,5 +1,5 @@
 import type { Program } from "@/types/program";
-import HomeClient from "@/components/HomeClient";
+import HomeClient from "../components/HomeClient";
 
 export const dynamic = "force-static";
 
