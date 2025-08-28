@@ -150,4 +150,6 @@ export function Sidebar({
   )
 }
 
+// Adaptador fino para builds case-sensitive y nombres anteriores.
+// Exporta tanto como default como named export para compatibilidad
 export default Sidebar 
