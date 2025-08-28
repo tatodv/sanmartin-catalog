@@ -11,9 +11,13 @@ interface TopBarProps {
   searchQuery?: string
   onSearchChange?: (query: string) => void
   onMobileMenuToggle?: () => void
+  // Integración Cerca de mí (opcional):
+  // nearbyOn ⇔ botón "Cerca de mí"; radiusKm ⇔ Select de km
+  onNearbyRequest?: () => void
+  onRadiusChange?: (km: number) => void
 }
 
-export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }: TopBarProps) {
+export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle, onNearbyRequest, onRadiusChange }: TopBarProps) {
   const [isLocating, setIsLocating] = useState(false)
   const [radius, setRadius] = useState("5")
   const { theme, toggleTheme } = useTheme()
@@ -34,6 +38,8 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
           (position) => {
             console.log("Ubicación obtenida:", position.coords)
             setIsLocating(false)
+            // Notificar al contenedor que se solicitó ubicación
+            onNearbyRequest?.()
           },
           (error) => {
             console.error("Error obteniendo ubicación:", error)
@@ -109,7 +115,7 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
               <span className="ml-2 hidden lg:inline font-medium">Cerca de mí</span>
             </Button>
 
-            <Select value={radius} onValueChange={setRadius}>
+            <Select value={radius} onValueChange={(v)=>{ setRadius(v); const n = Number(v); if (!Number.isNaN(n)) onRadiusChange?.(n); }}>
               <SelectTrigger className="w-20 lg:w-28 h-10 lg:h-12 rounded-xl border-border/50 focus:ring-accent focus:ring-2 focus:border-accent/50 transition-all bg-background/80 shadow-sm hidden sm:flex">
                 <SelectValue />
               </SelectTrigger>
@@ -168,7 +174,7 @@ export function TopBar({ searchQuery = "", onSearchChange, onMobileMenuToggle }:
               <span className="ml-2 font-medium">Cerca de mí</span>
             </Button>
 
-            <Select value={radius} onValueChange={setRadius}>
+            <Select value={radius} onValueChange={(v)=>{ setRadius(v); const n = Number(v); if (!Number.isNaN(n)) onRadiusChange?.(n); }}>
               <SelectTrigger className="w-28 h-10 rounded-xl border-border/50 focus:ring-accent focus:ring-2 focus:border-accent/50 transition-all bg-background/80 shadow-sm">
                 <SelectValue />
               </SelectTrigger>

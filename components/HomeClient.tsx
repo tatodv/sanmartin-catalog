@@ -5,6 +5,9 @@ import { useSearchParams, useRouter } from "next/navigation"
 import type { Program } from "@/types/program"
 import { debounce } from "@/lib/debounce"
 import { TopBar } from "@/components/top-bar"
+import { useGeolocation } from "@/hooks/useGeolocation"
+import { useNearby } from "@/app/(catalog)/useNearby"
+import type { LatLng } from "@/lib/geo"
 import { FiltersSidebar as Sidebar } from "@/components/FiltersSidebar"
 import ProgramCard from "@/components/ProgramCard"
 import { AcademicProgramCard } from "@/components/academic-program-card"
@@ -93,6 +96,8 @@ export default function HomeClient({ items }: { items: Program[] }) {
 
   const [filters, setFilters] = React.useState(() => decodeFilters(sp as unknown as URLSearchParams))
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false)
+  const [nearbyOn, setNearbyOn] = React.useState<boolean>(false) // mapeo local del switch existente
+  const [radiusKm, setRadiusKm] = React.useState<number>(5)
   const index = React.useMemo(() => buildIndex(items), [items])
 
   const pushUrl = React.useMemo(() => debounce((f: any) => {
@@ -113,6 +118,26 @@ export default function HomeClient({ items }: { items: Program[] }) {
     }
     return applyFilters(base, { ...filters, q: "" })
   }, [items, index, filters])
+
+  // Geolocalización (se solicita sólo cuando nearbyOn se enciende)
+  const { status, coords, request } = useGeolocation()
+  React.useEffect(() => {
+    if (nearbyOn && !coords && status !== "loading") request()
+  }, [nearbyOn, coords, status, request])
+
+  // Normalizar coords de items si existieran como lat/lon en datos (no romper si no están)
+  const baseWithCoords = React.useMemo(() => {
+    return results.map((p) => {
+      const anyP = p as any
+      const lat = typeof anyP.lat === "number" ? anyP.lat : undefined
+      const lng = typeof anyP.lng === "number" ? anyP.lng : (typeof anyP.lon === "number" ? anyP.lon : undefined)
+      const coords: LatLng | undefined = (typeof lat === "number" && typeof lng === "number") ? { lat, lng } : undefined
+      return { ...p, coords }
+    })
+  }, [results])
+
+  const userCoords = nearbyOn && coords ? coords : null
+  const { list } = useNearby(baseWithCoords as any[], userCoords, nearbyOn ? radiusKm : null)
 
   const setFilter = (k: string, v?: string) => setFilters(prev => ({ ...prev, [k]: v || "" }))
   const clearAll = () => setFilters({ q: "", tipo: "", carrera: "", institucion: "", unidad: "" })
@@ -143,12 +168,14 @@ export default function HomeClient({ items }: { items: Program[] }) {
         searchQuery={filters.q || ""}
         onSearchChange={(v: string) => setFilter("q", v)}
         onMobileMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        onNearbyRequest={() => setNearbyOn(true)}
+        onRadiusChange={(km)=> setRadiusKm(km)}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar {...sidebarProps} />
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {results.map((p) => (
+            {(list as Program[]).map((p) => (
               <AcademicProgramCard key={p.id} program={toAcademic(p)} />
             ))}
           </div>

@@ -92,6 +92,8 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
   }
 
   const hasMaps = Boolean(program.location?.institution || program.location?.address)
+  // Mostrar distancia si viene calculada desde la lista (program as any).distanceLabel
+  const distanceLabel = (program as any).distanceLabel as string | undefined
   return (
     <Card
       className={`
@@ -140,6 +142,9 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
             <div className="text-base">
               <p className="font-medium">{program.location.institution}</p>
               <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{program.location.address}</p>
+              {distanceLabel ? (
+                <p className="text-xs text-emerald-500 mt-1">{distanceLabel} de ti</p>
+              ) : null}
             </div>
           </div>
         </div>
