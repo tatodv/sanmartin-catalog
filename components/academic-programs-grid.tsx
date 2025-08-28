@@ -104,9 +104,11 @@ const academicPrograms: AcademicProgram[] = [
 ]
 
 export function AcademicProgramsGrid() {
+  const list: AcademicProgram[] =
+    (globalThis as any).__ACADEMIC_PROGRAMS__ || academicPrograms
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {academicPrograms.map((program) => (
+      {list.map((program) => (
         <AcademicProgramCard key={program.id} program={program} />
       ))}
     </div>

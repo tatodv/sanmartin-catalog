@@ -4,15 +4,26 @@
 }
 .program-card__header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .badge { font-size:12px; line-height:1; padding:6px 10px; border-radius:999px; border:1px solid currentColor; opacity:.9; }
-.badge--licenciatura,.ring--licenciatura{ color:#4ade80;}
-.badge--maestria,.ring--maestria{ color:#60a5fa;}
-.badge--doctorado,.ring--doctorado{ color:#c084fc;}
-.badge--tecnicatura,.ring--tecnicatura{ color:#34d399;}
-.badge--especializacion,.ring--especializacion{ color:#f59e0b;}
-.badge--profesorado,.ring--profesorado{ color:#f472b6;}
-.badge--ingenieria,.ring--ingenieria{ color:#22d3ee;}
-.badge--diplomatura,.ring--diplomatura{ color:#a3e635;}
-.badge--curso,.ring--curso{ color:#94a3b8;}
+.badge--licenciatura,.ring--licenciatura{ color:#16a34a; }
+.badge--maestria,.ring--maestria{ color:#2563eb; }
+.badge--doctorado,.ring--doctorado{ color:#7c3aed; }
+.badge--tecnicatura,.ring--tecnicatura{ color:#0ea5a4; }
+.badge--especializacion,.ring--especializacion{ color:#d97706; }
+.badge--profesorado,.ring--profesorado{ color:#db2777; }
+.badge--ingenieria,.ring--ingenieria{ color:#0891b2; }
+.badge--diplomatura,.ring--diplomatura{ color:#65a30d; }
+.badge--curso,.ring--curso{ color:#64748b; }
+
+/* Tintar borde y botones con el color del tipo */
+.ring--licenciatura{ --ring:#16a34a; }
+.ring--maestria{ --ring:#2563eb; }
+.ring--doctorado{ --ring:#7c3aed; }
+.ring--tecnicatura{ --ring:#0ea5a4; }
+.ring--especializacion{ --ring:#d97706; }
+.ring--profesorado{ --ring:#db2777; }
+.ring--ingenieria{ --ring:#0891b2; }
+.ring--diplomatura{ --ring:#65a30d; }
+.ring--curso{ --ring:#64748b; }
 .program-card__unit{ margin-top:2px; font-size:14px; color:var(--muted);}
 .program-card__pill{ margin-top:12px; border:1px solid var(--ring); background:rgba(0,0,0,.03);
   border-radius:14px; padding:10px 12px; font-size:14px;
@@ -21,6 +32,11 @@
 .actions{ margin-top:14px; display:flex; flex-wrap:wrap; gap:10px;}
 .action-btn{ display:inline-flex; align-items:center; gap:8px; font-size:14px; padding:8px 12px; border-radius:12px; border:1px solid var(--ring); text-decoration:none; color:var(--fg); background:#fff;}
 .action-btn:hover{ border-color:#9ca3af;}
-.action-btn.disabled{ opacity:0.5; cursor:not-allowed; color:var(--muted);}
-.action-btn.disabled:hover{ border-color:var(--ring);}
+.action-btn.disabled{ opacity:0.5; cursor:not-allowed; color:var(--muted); pointer-events:none;}
+.action-btn.disabled:hover{ border-color:var(--ring);} 
 .icon{ width:16px; height:16px;}
+
+/* Dark theme (respeta clase .dark en <html>) */
+.dark .program-card { --ring:#1f2a44; --bg:#0f1a2b; --fg:#e8e9ee; --muted:#9aa0a6; }
+.dark .program-card .action-btn{ background:transparent; }
+.dark .program-card .action-btn:hover{ border-color:#4b5563; }

@@ -64,7 +64,7 @@ interface AcademicProgramCardProps {
 }
 
 export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
-  const config = typeConfig[program.type]
+  const config = typeConfig[program.type as keyof typeof typeConfig] || typeConfig["Licenciatura"]
   const IconComponent = config.icon
 
   const handleWebClick = () => {
@@ -91,13 +91,13 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
     })
   }
 
+  const hasMaps = Boolean(program.location?.institution || program.location?.address)
   return (
     <Card
       className={`
-      bg-gray-900/50 backdrop-blur-sm border-2 ${config.borderColor} 
-      ${config.shadowColor} hover:shadow-xl ${config.hoverShadow}
-      transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1
-      group overflow-hidden
+      border-2 ${config.borderColor} ${config.shadowColor} hover:shadow-xl ${config.hoverShadow}
+      transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 group overflow-hidden
+      bg-white text-[#0b0b0d] dark:bg-[#0f1a2b] dark:text-[#e8e9ee]
     `}
     >
       <div className="p-6 space-y-4">
@@ -117,16 +117,16 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
 
         {/* Title */}
         <div>
-          <h3 className="text-2xl font-bold text-white mb-2 text-balance group-hover:text-gray-100 transition-colors">
+          <h3 className="text-2xl font-bold mb-2 text-balance">
             {program.title}
           </h3>
-          <p className="text-gray-400 text-base font-medium">{program.academicUnit}</p>
+          <p className="text-base font-medium text-gray-600 dark:text-gray-400">{program.academicUnit}</p>
         </div>
 
         {/* Enrollment Period */}
         {program.enrollmentPeriod && (
           <div className={`p-3 rounded-lg ${config.bgColor} border ${config.borderColor}`}>
-            <p className="text-base font-medium text-white mb-1">Período de Inscripción</p>
+            <p className="text-base font-medium mb-1">Período de Inscripción</p>
             <p className="text-sm" style={{ color: config.color }}>
               {formatDate(program.enrollmentPeriod.start)} - {formatDate(program.enrollmentPeriod.end)}
             </p>
@@ -136,10 +136,10 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
         {/* Location */}
         <div className="space-y-2">
           <div className="flex items-start gap-2">
-            <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <MapPin className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
             <div className="text-base">
-              <p className="text-white font-medium">{program.location.institution}</p>
-              <p className="text-gray-400 text-sm leading-relaxed">{program.location.address}</p>
+              <p className="font-medium">{program.location.institution}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{program.location.address}</p>
             </div>
           </div>
         </div>
@@ -151,14 +151,10 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
             size="sm"
             onClick={handleWebClick}
             disabled={!program.website}
-            className={`
-              ${config.borderColor} hover:bg-gray-800 text-white
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all duration-200 hover:scale-105
-            `}
+            className={`${config.borderColor} hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-200 hover:scale-105`}
             style={{
               borderColor: config.color,
-              color: program.website ? config.color : "#6b7280",
+              color: program.website ? config.color : undefined,
             }}
           >
             <Globe className="w-4 h-4 mr-1" />
@@ -170,14 +166,10 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
             size="sm"
             onClick={handleContactClick}
             disabled={!program.email}
-            className={`
-              ${config.borderColor} hover:bg-gray-800 text-white
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-all duration-200 hover:scale-105
-            `}
+            className={`${config.borderColor} hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-200 hover:scale-105`}
             style={{
               borderColor: config.color,
-              color: program.email ? config.color : "#6b7280",
+              color: program.email ? config.color : undefined,
             }}
           >
             <Mail className="w-4 h-4 mr-1" />
@@ -188,11 +180,9 @@ export function AcademicProgramCard({ program }: AcademicProgramCardProps) {
             variant="outline"
             size="sm"
             onClick={handleDirectionsClick}
-            className={`
-              ${config.borderColor} hover:bg-gray-800 text-white
-              transition-all duration-200 hover:scale-105
-            `}
-            style={{ borderColor: config.color, color: config.color }}
+            disabled={!hasMaps}
+            className={`${config.borderColor} hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all duration-200 hover:scale-105`}
+            style={{ borderColor: config.color, color: hasMaps ? config.color : undefined }}
           >
             <Navigation className="w-4 h-4 mr-1" />
             Llegar

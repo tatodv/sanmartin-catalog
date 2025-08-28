@@ -7,6 +7,8 @@ import { debounce } from "@/lib/debounce"
 import { TopBar } from "@/components/top-bar"
 import { Sidebar } from "@/components/Sidebar"
 import ProgramCard from "@/components/ProgramCard"
+import { AcademicProgramCard } from "@/components/academic-program-card"
+import type { AcademicProgram } from "@/components/academic-programs-grid"
 
 function uniqSorted(values: (string | undefined)[]): string[] {
   return Array.from(new Set(values.map(v => (v || "").trim()).filter(Boolean)))
@@ -125,6 +127,16 @@ export default function HomeClient({ items }: { items: Program[] }) {
     onMobileClose: () => setIsMobileSidebarOpen(false),
   }
 
+  const toAcademic = (p: Program): AcademicProgram => ({
+    id: p.id,
+    title: p.title,
+    type: (p.degree_title as any) as AcademicProgram["type"],
+    academicUnit: p.unit || "",
+    location: { institution: p.institution || "", address: p.address || "" },
+    website: p.links?.find(l => (l.label||"").toLowerCase().includes("web"))?.url,
+    email: p.links?.find(l => (l.label||"").toLowerCase().includes("contacto"))?.url?.replace(/^mailto:/, ""),
+  })
+
   return (
     <div className="flex h-screen flex-col bg-background">
       <TopBar
@@ -137,7 +149,7 @@ export default function HomeClient({ items }: { items: Program[] }) {
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {results.map((p) => (
-              <ProgramCard key={p.id} program={p} />
+              <AcademicProgramCard key={p.id} program={toAcademic(p)} />
             ))}
           </div>
         </div>
